@@ -1,0 +1,465 @@
+﻿@page "/"
+@using System.Text.Json;
+@using FleetSharp;
+@using FleetSharp.Builder;
+@using FleetSharp.Types;
+@using HodlCoin.Client.HodlCoinImpl;
+@using MudExtensions.Enums
+@using System.Globalization;
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<PageTitle>hodlCoin</PageTitle>
+
+
+<div style="height: 100vh;">
+	<MudLoading @bind-Loading="_loading" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
+        <MudLoading @bind-Loading="_loadingStats" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
+            <MudGrid>
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Align="Align.Center">Current price</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentPrice</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Align="Align.Center">Current ratio</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentRatio</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Align="Align.Center">Circulating supply</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentCirculatingSupply</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Align="Align.Center">TVL</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentTVL</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudLoading>
+
+        <MudGrid Justify="Justify.Center" Class="mt-16" Style="align-items: center;">
+			<MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+				<h3>Minting hodlCoin</h3>
+                <MudText>Mint HodlCoin with no fees. You have the freedom to mint as much as you desire at the current price. It's important to note that the minting process does not directly affect the token's pricing dynamics.</MudText>
+				<MudPaper Class="mud-width-full" Style="position: relative">
+					<MudStack Row=true>
+                        <MudNumericField @bind-Value="MintHodlCoinAmount" HideSpinButtons="true" HelperText="@MintHodlCoinWorth" TextChanged="@MintHodlCoinAmountChanged" Label="Amount" Variant="Variant.Text" Min="0M" Step="1M" Converter="@converter" />
+						<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlCoin">Mint hodlCoin</MudButton>
+					</MudStack>
+				</MudPaper>
+			</MudItem>
+
+            <MudItem xs="12" sm="12" lg="1" Class="d-flex gap-4 align-center flex-wrap">
+            </MudItem>
+
+            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+                <h3>Redeeming hodlCoin</h3>
+                <MudText>When redeeming your hodlCoin, there is a 3% protocol fee and a 0.3% dev fee associated with the process. The protocol fee contributes to the overall dynamics of the hodlCoin ecosystem.</MudText>
+                <MudPaper Class="mud-width-full" Style="position: relative">
+                    <MudStack Row=true>
+                        <MudNumericField @bind-Value="RedeemHodlCoinAmount" HideSpinButtons="true" HelperText="@RedeemHodlCoinWorth" TextChanged="@RedeemHodlCoinAmountChanged" Label="Amount" Variant="Variant.Text" Min="0M" Step="1M" Converter="@converter" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RedeemHodlCoin">Redeem hodlCoin</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+		</MudGrid>
+	</MudLoading>
+</div>
+
+
+@code {
+    [Parameter]
+    public int AutoRefreshInterval { get; set; } = 1000*30;
+
+    bool _loading = false;
+    string _loadingText = "";
+    private Timer? timer = null;
+    HodlErgoBankBox? latestBankBox;
+
+    bool _loadingStats = false;
+    string _loadingStatsText = "Loading data...";
+    string CurrentPrice = "";
+    string CurrentRatio = "";
+    string CurrentCirculatingSupply = "";
+    string CurrentTVL = "";
+
+    string MintHodlCoinWorth = "0 ERG";
+    string RedeemHodlCoinWorth = "0 ERG";
+
+    decimal? MintHodlCoinAmount { get; set; } = 0.000000000M;
+    decimal? RedeemHodlCoinAmount { get; set; } = 0.000000000M;
+
+    [Inject] private IDialogService DialogService { get; set; }
+
+    //https://stackoverflow.com/questions/69093180/blazor-how-to-stop-a-timer-when-exiting-page
+    public void Dispose()
+    {
+        timer?.Dispose();        // because you need it here
+    }
+
+    Converter<decimal?> converter = new Converter<decimal?>
+        {
+            SetFunc = value => (value.HasValue && value != 0M) ? value.Value.ToString("0.000000000") : string.Empty,
+            GetFunc = text => string.IsNullOrWhiteSpace(text) ? (decimal?)null : Convert.ToDecimal(text.Replace(",", "."), CultureInfo.InvariantCulture),
+        };
+
+    protected async Task MintHodlCoinAmountChanged(string newValue)
+    {
+        if (string.IsNullOrWhiteSpace(newValue))
+        {
+            MintHodlCoinWorth = "0 ERG";
+            return;
+        }
+
+        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
+
+        //fetch latest box..
+        //if (amount > 0) await UpateUIValues();
+
+        var cost = latestBankBox?.TotalCostToMintReserveCoin(amount, Config.DEFAULT_TX_FEE) ?? 0;
+        MintHodlCoinWorth = $"{cost / Math.Pow(10, 9)} ERG";
+    }
+
+    protected async Task RedeemHodlCoinAmountChanged(string newValue)
+    {
+        if (string.IsNullOrWhiteSpace(newValue))
+        {
+            RedeemHodlCoinWorth = "0 ERG";
+            return;
+        }
+
+        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
+
+        //fetch latest box..
+        //if (amount > 0) await UpateUIValues();
+
+        var cost = latestBankBox?.TotalAmountFromRedeemingReserveCoin(amount, Config.DEFAULT_TX_FEE) ?? 0;
+        RedeemHodlCoinWorth = $"{cost / Math.Pow(10, 9)} ERG";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Auto refresh dashboard
+        if (timer == null && AutoRefreshInterval > 0)
+        {
+            timer = new Timer(new TimerCallback(_ =>
+        {
+            InvokeAsync(async () =>
+            {
+                await UpateUIValues();
+            });
+        }), null, 0, AutoRefreshInterval);
+        }
+    }
+
+    async Task UpateUIValues(bool refreshLatestBox = true)
+    {
+        _loadingStats = true;
+        StateHasChanged();
+
+        try
+        {
+            //Update dashboard like current price etc
+
+            if (refreshLatestBox)
+            {
+                _loadingText = "Loading data...";
+                StateHasChanged();
+
+                var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer);
+                if (bankBox == null)
+                {
+                    await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
+                    _loadingStats = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                var bank = new HodlCoinImpl.HodlErgoBankBox(bankBox);
+                latestBankBox = bank;
+            }
+
+            decimal price = latestBankBox.BaseCostToMintReserveCoin(1000000000L) / 1000000000M;
+            CurrentPrice = $"{price.ToString("0.0000")} ERG";
+            CurrentRatio = $"1 ERG ≈ {(latestBankBox.BaseAmountToReserveCoinAmount(1000000000L) / Math.Pow(10, 9)).ToString("0.0000")} hodlCoin";
+
+            CurrentCirculatingSupply = String.Format("{0:#,0.#}", latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, 9));
+
+            CurrentTVL = $"{String.Format("{0:#,0.#}", latestBankBox.BaseReserves() / Math.Pow(10, 9))} ERG";
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
+        }
+
+        _loadingStats = false;
+        StateHasChanged();
+    }
+
+    private async void MintHodlCoin()
+    {
+        if (MintHodlCoinAmount == null || MintHodlCoinAmount <= 0)
+        {
+            await DialogService.ShowMessageBox("Error", "Amount must be larger then 0!");
+            return;
+        }
+
+        if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+        {
+            await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            return;
+        }
+
+        var ergBalance = await Wallet.GetBalance(JS, "ERG");
+        var costToMint = latestBankBox?.TotalCostToMintReserveCoin((long)(MintHodlCoinAmount * 1000000000M), Config.DEFAULT_TX_FEE);
+        if (costToMint > ergBalance)
+        {
+            await DialogService.ShowMessageBox("Error", $"The cost to mint {MintHodlCoinAmount} hodlCoin ({costToMint / Math.Pow(10, 9)} ERG) exceeds your current wallet balance ({ergBalance / Math.Pow(10, 9)} ERG)!");
+            return;
+        }
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                //Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    _loadingText = "Retrieving bank box...";
+                    StateHasChanged();
+
+                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer);
+                    if (bankBox == null)
+                    {
+                        await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    var bank = new HodlCoinImpl.HodlErgoBankBox(bankBox);
+
+                    latestBankBox = bank;
+                    await UpateUIValues();
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    var builder = HodlCoinApp.ActionMintHodlCoin(allUTXOs, bank, (long)(MintHodlCoinAmount * 1000000000M), ErgoAddress.fromBase58(changeAddress), Config.DEFAULT_TX_FEE, height, ErgoAddress.fromBase58("9fwTmAApbyYTfv6ZPELpC5iFkyNBtt3XNfsauUMX4Jm7mfYtb4p"));
+                    var tx = builder.build().ToEIP12Object();
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
+            MintHodlCoinAmount = null;
+
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+
+            await UpateUIValues(false);
+        }
+    }
+
+    private async void RedeemHodlCoin()
+    {
+        if (RedeemHodlCoinAmount == null || RedeemHodlCoinAmount <= 0)
+        {
+            await DialogService.ShowMessageBox("Error", "Amount must be larger then 0!");
+            return;
+        }
+
+        if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+        {
+            await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            return;
+        }
+
+        var hodlBalance = await Wallet.GetBalance(JS, HodlCoinImpl.Parameters.HODLCOIN_TOKEN_ID);
+        if ((RedeemHodlCoinAmount * 1000000000M) > hodlBalance)
+        {
+            await DialogService.ShowMessageBox("Error", $"Amount exceeds wallet balance of {hodlBalance / Math.Pow(10,9)} hodlCoin!");
+            return;
+        }
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    _loadingText = "Retrieving bank box...";
+                    StateHasChanged();
+
+                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer);
+                    if (bankBox == null)
+                    {
+                        await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    var bank = new HodlCoinImpl.HodlErgoBankBox(bankBox);
+
+                    latestBankBox = bank;
+                    await UpateUIValues(false);
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    Console.WriteLine($"amount redeem hodl: {(long)(RedeemHodlCoinAmount * 1000000000M)}");
+                    var builder = HodlCoinApp.ActionRedeemHodlCoin(allUTXOs, bank, (long)(RedeemHodlCoinAmount * 1000000000M), ErgoAddress.fromBase58(changeAddress), Config.DEFAULT_TX_FEE, height);
+                    var tx = builder.build().ToEIP12Object();
+                    Console.WriteLine($"tx: {JsonSerializer.Serialize(tx)}");
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
+            RedeemHodlCoinAmount = 0;
+
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+
+            await UpateUIValues();
+        }
+    }
+}
+

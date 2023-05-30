@@ -1,0 +1,78 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<MudThemeProvider IsDarkMode=true />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="page">
+    @*<div class="sidebar">
+         <NavMenu /> 
+    </div>*@
+
+    <main>
+        <div class="top-row auth px-4" style="background-color: rgba(0,0,0,0.05); border-bottom: unset;">
+            <div style="float: right">
+                <MudStack Row=true Style="align-items: center;">
+                    @if (!@isConnected)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ConnectWallet">Connect wallet</MudButton>
+                    }
+                    else
+                    {
+                        <MudText>@hodlCoinBalanceText</MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="DisconnectWallet">Disconnect wallet</MudButton>
+                    }
+                </MudStack>
+               
+            </div>
+            
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    bool isConnected = false;
+    string hodlCoinBalanceText = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _= SetUIbasedOnWalletStatus();
+        }
+    }
+
+    private async Task SetUIbasedOnWalletStatus()
+    {
+        //Check if connected
+        isConnected = await Wallet.IsWalletConnected(JS, localStorage);
+        Console.WriteLine($"Wallet connected = {isConnected}");
+
+        long hodlBalance = 0;
+        if(isConnected)
+        {
+            hodlBalance = await Wallet.GetBalance(JS, HodlCoinImpl.Parameters.HODLCOIN_TOKEN_ID);
+            hodlCoinBalanceText = $"{(hodlBalance / Math.Pow(10, 9)).ToString()} hodlCoin";
+        }
+
+        StateHasChanged();
+    }
+
+    private async void ConnectWallet()
+    {
+        await Wallet.ConnectWallet(JS, localStorage);
+        await SetUIbasedOnWalletStatus();
+    }
+
+    private async void DisconnectWallet()
+    {
+        await Wallet.DisconnectWallet(JS, localStorage);
+        await SetUIbasedOnWalletStatus();
+    }
+}

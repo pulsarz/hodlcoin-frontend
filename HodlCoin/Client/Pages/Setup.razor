@@ -1,0 +1,340 @@
+﻿@page "/setup"
+
+@using FleetSharp;
+@using MudExtensions.Enums;
+@using System.Text.Json;
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<PageTitle>hodlCoin Setup</PageTitle>
+
+<div style="height: 100vh;">
+	<MudLoading @bind-Loading="_loading" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
+        <MudGrid Justify="Justify.Center" Class="mt-16" Style="align-items: center;">
+            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+                <h3>Mint hodlCoin Bank NFT</h3>
+                <MudPaper Class="mud-width-full" Style="position: relative">
+                    <MudStack Row=true>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlBankNFT">Mint hodlCoin Bank NFT</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+                <h3>Mint all hodlCoin tokens</h3>
+                <MudPaper Class="mud-width-full" Style="position: relative">
+                    <MudStack Row=true>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlTokens">Mint all holdCoin tokens</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+                <h3>Create hodlCoin bank box</h3>
+                <MudPaper Class="mud-width-full" Style="position: relative">
+                    <MudStack Row=true>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlCoinBankBox">Mint hodlCoin bank box</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+		</MudGrid>
+	</MudLoading>
+</div>
+
+@code {
+    bool _loading = false;
+    string _loadingText = "";
+
+    [Inject] private IDialogService DialogService { get; set; }
+
+    //Initialize functions first time
+    private async void MintHodlBankNFT()
+    {
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+            {
+                _loadingText = "Connecting wallet...";
+                StateHasChanged();
+                await Wallet.ConnectWallet(JS, localStorage);
+            }
+
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                //Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    var builder = HodlCoinImpl.Initialize.BuildMintBankNFT(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var tx = builder.build().ToEIP12Object();
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+            StateHasChanged();
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async void MintHodlTokens()
+    {
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+            {
+                _loadingText = "Connecting wallet...";
+                StateHasChanged();
+                await Wallet.ConnectWallet(JS, localStorage);
+            }
+
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                //Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    var builder = HodlCoinImpl.Initialize.BuildMintHodlToken(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var tx = builder.build().ToEIP12Object();
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+            StateHasChanged();
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async void MintHodlCoinBankBox()
+    {
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+            {
+                _loadingText = "Connecting wallet...";
+                StateHasChanged();
+                await Wallet.ConnectWallet(JS, localStorage);
+            }
+
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                //Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    var builder = HodlCoinImpl.Initialize.BuildInitialBankBox(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var tx = builder.build().ToEIP12Object();
+
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+            StateHasChanged();
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+            StateHasChanged();
+        }
+    }
+}
