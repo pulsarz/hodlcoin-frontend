@@ -124,7 +124,6 @@ namespace HodlCoin.Client.HodlCoinImpl
 		}
 
 		//Methods for creating the candicate
-
 		/// Create an `OutputBuilder` for the output Bank box for the
 		/// `Mint ReserveCoin` action
 		public OutputBuilder CreateMintReserveCoinCandidate(Box<long> inputBankBox, long amountToMint, long circulatingReservecoinsOut, long reservecoinValueInBase)
