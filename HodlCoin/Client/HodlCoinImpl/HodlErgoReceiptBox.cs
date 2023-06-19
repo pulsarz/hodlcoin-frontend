@@ -10,14 +10,14 @@ namespace HodlCoin.Client.HodlCoinImpl
 {
     public static class HodlErgoReceiptBox
     {
-        public static TokenAmount<long> NewReserveCoinToken(long amount)
+        public static TokenAmount<long> NewReserveCoinToken(HodlTokenInfo info, long amount)
         {
-            return new TokenAmount<long> { tokenId = Parameters.HODLCOIN_TOKEN_ID, amount = amount };
+            return new TokenAmount<long> { tokenId = info.tokenId, amount = amount };
         }
 
-        public static OutputBuilder CreateMintReserveCoinCandidate(Box<long> bankBox, long amountToMint, ErgoAddress userAddress, long reservecoinValueInBase)
+        public static OutputBuilder CreateMintReserveCoinCandidate(HodlTokenInfo info, Box<long> bankBox, long amountToMint, ErgoAddress userAddress, long reservecoinValueInBase)
         {
-            var rbReservecoinToken = NewReserveCoinToken(amountToMint);
+            var rbReservecoinToken = NewReserveCoinToken(info, amountToMint);
             var rbTokens = new List<TokenAmount<long>> { rbReservecoinToken };
 
             var registers = new NonMandatoryRegisters { R4 = SConstant(SLong(amountToMint)), R5 = SConstant(SLong(reservecoinValueInBase)) };
@@ -30,10 +30,10 @@ namespace HodlCoin.Client.HodlCoinImpl
             return candidate;
         }
 
-        public static OutputBuilder CreateRedeemReserveCoinCandidate(Box<long> bankBox, List<Box<long>> rcBoxes, long amountToRedeem, ErgoAddress userAddress, long txFee, long reservecoinValueInbase, long devFee)
+        public static OutputBuilder CreateRedeemReserveCoinCandidate(HodlTokenInfo info, Box<long> bankBox, List<Box<long>> rcBoxes, long amountToRedeem, ErgoAddress userAddress, long txFee, long reservecoinValueInbase, long devFee)
         {
             // Find how many ReserveCoin are inside of the ReserveCoin boxes
-            var rcBoxesTotalRC = rcBoxes.Sum(x => x.assets.Where(y => y.tokenId == Parameters.HODLCOIN_TOKEN_ID).Sum(y => y.amount));
+            var rcBoxesTotalRC = rcBoxes.Sum(x => x.assets.Where(y => y.tokenId == info.tokenId).Sum(y => y.amount));
 
             // The amount of nanoErgs in the rc_boxes + the value of the
             // ReserveCoins being redeemed - the transaction fee
@@ -51,7 +51,7 @@ namespace HodlCoin.Client.HodlCoinImpl
             if (rcBoxesTotalRC > amountToRedeem)
             {
                 var amount = rcBoxesTotalRC - amountToRedeem;
-                var newRCToken = NewReserveCoinToken(amount);
+                var newRCToken = NewReserveCoinToken(info, amount);
                 rbTokens.Add(newRCToken);
             }
 

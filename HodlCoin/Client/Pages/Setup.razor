@@ -8,7 +8,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>hodlCoin Setup</PageTitle>
-
+@*
 <div style="height: 100vh;">
 	<MudLoading @bind-Loading="_loading" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
         <MudGrid Justify="Justify.Center" Class="mt-16" Style="align-items: center;">
@@ -40,10 +40,10 @@
             </MudItem>
 		</MudGrid>
 	</MudLoading>
-</div>
+</div>*@
 
 @code {
-    bool _loading = false;
+   /* bool _loading = false;
     string _loadingText = "";
 
     [Inject] private IDialogService DialogService { get; set; }
@@ -336,5 +336,5 @@
             }
             StateHasChanged();
         }
-    }
+    }*/
 }
