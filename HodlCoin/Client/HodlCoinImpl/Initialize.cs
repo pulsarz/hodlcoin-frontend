@@ -11,35 +11,36 @@ namespace HodlCoin.Client.HodlCoinImpl
 {
 	public static class Initialize
 	{
-		public static TransactionBuilder BuildMintBankNFT(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress)
+		public static TransactionBuilder BuildMintBankNFT(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress, string name, string description)
 		{
-			return BuildTokenMintingTX(unspentWalletBoxes, currentHeight, changeAddress, 1, "hodlCoin Bank NFT", 0, "");
+			return BuildTokenMintingTX(unspentWalletBoxes, currentHeight, changeAddress, 1, name, 0, description);
 		}
 
-		public static TransactionBuilder BuildMintHodlToken(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress)
+		public static TransactionBuilder BuildMintHodlToken(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress, long amount, string name, int decimals, string description)
 		{
-			return BuildTokenMintingTX(unspentWalletBoxes, currentHeight, changeAddress, Parameters.MAX_SUPPLY, "hodlCoin", 9, "");
+			return BuildTokenMintingTX(unspentWalletBoxes, currentHeight, changeAddress, amount, name, decimals, description);
 		}
 
-		//This also burns 1 full hodlcoin to make sure circ supply never goes to 0. Also requires 1 erg.
-        public static TransactionBuilder BuildInitialBankBox(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress)
+        //This also burns 1 full hodlcoin to make sure circ supply never goes to 0. Also requires 1 erg.
+        //for erg boxValue = amtToBurn
+        public static TransactionBuilder BuildInitialBankBox(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress, string contractAddress, string bankId, string tokenId, long maxSupply, long amtToBurn, long boxValue)
         {
-			var amtToBurn = 1000000000L;//this assumes 1 hodlcoin = 1 erg for box value
+			//var amtToBurn = 1000000000L;//this assumes 1 hodlcoin = 1 erg for box value
 
             return new TransactionBuilder(currentHeight)
                 .from(unspentWalletBoxes)
                 .to(new List<OutputBuilder>
                 {
-                    new OutputBuilder(amtToBurn, ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(Parameters.CONTRACT_ADDRESS).GetErgoTreeHex(), Parameters.NETWORK))
+                    new OutputBuilder(boxValue, ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
                         .AddTokens(new List<TokenAmount<long>> {
-                            new TokenAmount<long> { tokenId = Parameters.HODLCOIN_TOKEN_ID, amount = Parameters.MAX_SUPPLY - amtToBurn },
-                            new TokenAmount<long> { tokenId = Parameters.BANK_NFT_TOKEN_ID, amount = 1 }
+                            new TokenAmount<long> { tokenId = tokenId, amount = maxSupply - amtToBurn },
+                            new TokenAmount<long> { tokenId = bankId, amount = 1 }
                         })
 						.SetAdditionalRegisters(new NonMandatoryRegisters {
 							R4 = SConstant(SLong(amtToBurn))
 						})
                 })
-				.burnTokens(new List<TokenAmount<long>> { new TokenAmount<long> { tokenId = Parameters.HODLCOIN_TOKEN_ID , amount = amtToBurn } })
+				.burnTokens(new List<TokenAmount<long>> { new TokenAmount<long> { tokenId = tokenId, amount = amtToBurn } })
                 .sendChangeTo(changeAddress)
                 .payMinFee();
         }

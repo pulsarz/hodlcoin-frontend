@@ -9,22 +9,22 @@ namespace HodlCoin.Client
 	public static class HodlCoinApp
 	{
         //Currently node is needed for mempool.
-        public static async Task<Box<long>?> GetLastHodlCoinBankBox(NodeInterface node, Explorer explorer)
+        public static async Task<Box<long>?> GetLastHodlCoinBankBox(NodeInterface node, Explorer explorer, HodlTokenInfo info)
         {
             //first check if there is any in mempool, if so use the last one and directly return it.
-            var boxesInMempool = await node.GetBoxesFromMempoolByTokenId(Parameters.BANK_NFT_TOKEN_ID);
+            var boxesInMempool = await node.GetBoxesFromMempoolByTokenId(info.bankNFTTokenId);
             if (boxesInMempool != null && boxesInMempool.Count > 0)
             {
                 Console.WriteLine($"Found {boxesInMempool.Count} bank boxes in mempool");
                 return boxesInMempool.Last();
             }
 
-            var lastBox = (await explorer.GetUnspentBoxesByTokenId(Parameters.BANK_NFT_TOKEN_ID))?.FirstOrDefault();
+            var lastBox = (await explorer.GetUnspentBoxesByTokenId(info.bankNFTTokenId))?.FirstOrDefault();
 
             return lastBox;
         }
 
-        public static TransactionBuilder ActionMintHodlCoin(List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToMint, ErgoAddress userAddress, long txFee, long currentHeight, ErgoAddress implementorAddress)
+        public static TransactionBuilder ActionMintHodlCoin(HodlTokenInfo info, List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToMint, ErgoAddress userAddress, long txFee, long currentHeight, ErgoAddress implementorAddress)
 		{
 			// Total ergs inside of `ergs_boxes`
 			var inputErgsTotal = ergsBoxes.Sum(x => x.value);
@@ -56,7 +56,7 @@ namespace HodlCoin.Client
 			var outputBankCandidate = bankBox.CreateMintReserveCoinCandidate(bankBox.GetBox(), amountToMint, circulatingReservecoinsOut, reservecoinValueInBase);
 
 			// Create the Receipt box candidate
-			var receiptBoxCandidate = HodlErgoReceiptBox.CreateMintReserveCoinCandidate(bankBox.GetBox(), amountToMint, userAddress, reservecoinValueInBase);
+			var receiptBoxCandidate = HodlErgoReceiptBox.CreateMintReserveCoinCandidate(info, bankBox.GetBox(), amountToMint, userAddress, reservecoinValueInBase);
 
 			var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
 
@@ -75,11 +75,11 @@ namespace HodlCoin.Client
 			return txBuilder;
 		}
 
-        public static TransactionBuilder ActionRedeemHodlCoin(List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToRedeem, ErgoAddress userAddress, long txFee, long currentHeight)
+        public static TransactionBuilder ActionRedeemHodlCoin(HodlTokenInfo info, List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToRedeem, ErgoAddress userAddress, long txFee, long currentHeight)
         {
-            var rcBoxes = ergsBoxes.Where(x => x.assets.Exists(y => y.tokenId == Parameters.HODLCOIN_TOKEN_ID)).ToList();
+            var rcBoxes = ergsBoxes.Where(x => x.assets.Exists(y => y.tokenId == info.tokenId)).ToList();
 
-            var inputReservecoinsTotal = rcBoxes.SelectMany(x => x.assets).Where(x => x.tokenId == Parameters.HODLCOIN_TOKEN_ID).Sum(x => x.amount);
+            var inputReservecoinsTotal = rcBoxes.SelectMany(x => x.assets).Where(x => x.tokenId == info.tokenId).Sum(x => x.amount);
 
             var baseReservesIn = bankBox.BaseReserves();
             var circulatingReservecoinsIn = bankBox.NumCirculatingReserveCoins();
@@ -117,7 +117,7 @@ namespace HodlCoin.Client
             var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase);
 
             // Create the Receipt box candidate
-            var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
+            var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
 
             var outputs = new List<OutputBuilder> {
                 outputBankCandidate,

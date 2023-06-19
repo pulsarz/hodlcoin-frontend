@@ -99,3 +99,9 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+.tabFullHeightAndScroll {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
