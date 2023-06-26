@@ -26,16 +26,15 @@ namespace HodlCoin.Client.HodlCoinImpl
 	{
 		public const Network NETWORK = Network.Testnet;
 
-        public const long MIN_BOX_VALUE = OutputBuilder.SAFE_MIN_BOX_VALUE;
+        public const long MIN_BOX_VALUE = 1000000L;//0.001 ERG
 
 		public const double DEV_FEE_PERCENT = 0.003;
-		public const long MINIMUM_DEV_FEE_ERG = 1000000L;//0.001 ERG, per box
                                                      //ToDo: Change me to mainnet address AND in the eroscript enable this!!!!
         public const string DEV_FEE_ADDRESS1 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
         public const string DEV_FEE_ADDRESS2 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
         public const string DEV_FEE_ADDRESS3 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
 
-        public const string CONTRACT_ADDRESS_ERG = "Y2S1gAniW8TBEqubZBoa4UFH9MjMzqH8FTSi2JhQdmW6QJKHNweqVZhfdso5xdAHzhaa8Myd8LgEpn6BTryv2VReMGdmtuBR4wv8bFN7VWTbcTBdVDKAPzJJjsP9tNuZyjvkVPBGTEAvytSeRVyG29FcV6kQbCyF4gwy4i1GwCrHFX5Rmci9Duy6RM7fqQxMCBEtNG8YYSXJ46ao4cCmD8Xki45TnubWimXQQiAjgTdqVvz5tVg66pTjb9GN6si38keSxUtP5aGdJ4G1QJnQMc7QQhnXPyb61mAQyBF2qnyCgubyyiV7Qb7ifEFsd6SorA2ekBs6FWSsckkNYhrkj5ubvZdu1cm4tQZVyN6QAjEeJ43LqcagJtpn4ZtsVg6SqPVqNSWDKyHSavGk8P2dBUzZYL9Q5tTwbXzdAsqhWgzVGsbqgxBo6WB7xdRUnNq";
+        public const string CONTRACT_ADDRESS_ERG = "ATDbjU5VJUs87ckaw6WQjow4bZpDngic31uAN4fc5mMQWrwLmMwUeksSFPCDZ7iDmauQitG1YLM9qwQq9Yx7xo51JXARhSA3kDNW582euEAxueUUhQMXaN7BgNSusuqhKsJKAgYaY4gUWG85gF56PZ1oR9EfoWUzxxw944UKvpUbVSiHxQuxacnTvYAfnBUeYZvdRQDy6JxznNmzkrjm4XgcB19GgsyZDWfaxsf6hhRgHKDetJuwdm6M3LsNPiipdBEox7cANhZ2PogeH7eENBKzg6Zxis5C6ovSDMo14eMPrvC541DFr7vqqCkcyBxr8c1gBrBHDYKTjhTKeLykNCyiPet4PcvF1HHne1R1qCrChmYSwNgUKBPGCvEYkvu8vLiNeqhYGHR2asL1rQkvqFzUGoPkm7S5JWx3AycatUHD9iaCpxdjrXDeaVKmjiwNYWqbXxbg9LQsDjqadkKsdgZo62PBVqLeXW28vaqkDuXnFiKUUdS8eLZapAfCwBnZHGusHSxnFkmWcbjqF9oReS8Yk9BypHGJ8NUBLjXK2dz21TRKqRWFYkEWqAjjgqC8Lrygj8Cm3EQtcNMmt3Z94ArSSiCB8HsDW8icpZUjFa";
 		public const string CONTRACT_ADDRESS_TOKEN = "";//ToDo: create contract for tokens
 
 		public static List<HodlTokenInfo> tokens = new List<HodlTokenInfo>()
@@ -44,8 +43,8 @@ namespace HodlCoin.Client.HodlCoinImpl
 				new HodlTokenInfo {
 					name = "hodlERG",
 					description = "hodlERG 3%",
-					bankNFTTokenId = "fb645d484218923dee9adfa42d90faf4c29ae862f0e5130f873e5b0bfece37c0",
-					tokenId = "2679615d28e1d0289eff28b71b7c93dcd7210a6419fa56a7df5f5f8ea1740d83",
+					bankNFTTokenId = "e3fea267b489291a13ff69be05f5231a6fefdeed54a66b431f826e09ba150e09",
+					tokenId = "fffcba7b514f817d1a282f10356c23f398cbc34aa2dbf75e2a67128a7253c52e",
 					decimals = 9,
 					maxSupply = 97739924000000000L,
 					preciseFactor = 1000L,

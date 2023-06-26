@@ -75,6 +75,8 @@
                 </MudPaper>
             </MudItem>
         </MudGrid>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Coffee" Color="Color.Primary" Title="@string.Format($"Execute dev fee withdrawal ({latestBankBox?.AccumulatedDevFees() / Math.Pow(10,hodlToken.baseTokenDecimals)} {hodlToken.baseTokenName})")" OnClick="ExecuteDevFeeWithdrawal" Style="float: right;"></MudIconButton>
     </MudLoading>
 </div>
 
@@ -456,6 +458,116 @@
         {
             RedeemHodlCoinAmount = 0;
 
+            bool? result = await DialogService.ShowMessageBox(
+            "Success!",
+            $"Transaction id = {transactionId}",
+            yesText: "Open in explorer", cancelText: "Close");
+            if (result == true)
+            {
+                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
+            }
+
+            await UpateUIValues();
+        }
+    }
+
+    private async void ExecuteDevFeeWithdrawal()
+    {
+        if (!(await Wallet.IsWalletConnected(JS, localStorage)))
+        {
+            await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            return;
+        }
+
+        _loading = true;
+        StateHasChanged();
+
+        string? transactionId = null;
+
+        try
+        {
+            if (await Wallet.IsWalletConnected(JS, localStorage))
+            {
+                _loadingText = "Retrieving wallet change address...";
+                StateHasChanged();
+                var changeAddress = await Wallet.GetChangeAddress(JS);
+                Console.WriteLine($"Change address: {changeAddress}");
+
+                _loadingText = "Retrieving wallet unspent UTXO's...";
+                StateHasChanged();
+                var allUTXOs = await Wallet.GetUtxos(JS);
+                Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
+
+                _loadingText = "Retrieving current height...";
+                StateHasChanged();
+                var height = await Wallet.GetCurrentHeight(JS);
+                Console.WriteLine($"Current height: {height}");
+
+                if (allUTXOs != null && allUTXOs.Count > 0)
+                {
+                    //Test mint sigrsv
+                    if (allUTXOs == null || allUTXOs.Count == 0)
+                    {
+                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    _loadingText = "Retrieving bank box...";
+                    StateHasChanged();
+
+                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer, hodlToken);
+                    if (bankBox == null)
+                    {
+                        await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
+                        _loading = false;
+                        StateHasChanged();
+                        return;
+                    }
+
+                    var bank = new HodlCoinImpl.HodlErgoBankBox(bankBox, hodlToken);
+
+                    latestBankBox = bank;
+                    await UpateUIValues(false);
+
+                    _loadingText = "Building transaction...";
+                    StateHasChanged();
+
+                    var builder = HodlCoinApp.ActionWithdrawDevFees(hodlToken, allUTXOs, bank, bank.AccumulatedDevFees(), ErgoAddress.fromBase58(changeAddress), TransactionBuilder.RECOMMENDED_MIN_FEE_VALUE, height);
+                    var tx = builder.build().ToEIP12Object();
+                    Console.WriteLine($"tx: {JsonSerializer.Serialize(tx)}");
+
+                    if (tx != null)
+                    {
+                        _loadingText = "Signing transaction...";
+                        StateHasChanged();
+
+                        var signedTx = await Wallet.SignTX(JS, tx);
+                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                        _loadingText = "Submitting transaction...";
+                        StateHasChanged();
+                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        Console.WriteLine($"transactionId: {transactionId}");
+                    }
+                }
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
+            }
+        }
+        catch (Exception e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+        }
+
+        _loading = false;
+        StateHasChanged();
+
+        if (transactionId != null)
+        {
             bool? result = await DialogService.ShowMessageBox(
             "Success!",
             $"Transaction id = {transactionId}",

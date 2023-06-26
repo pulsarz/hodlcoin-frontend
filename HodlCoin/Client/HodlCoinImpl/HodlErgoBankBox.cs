@@ -12,13 +12,16 @@ namespace HodlCoin.Client.HodlCoinImpl
 	{
 		private Box<long> _bankBox;
 		private long _NumCirculatingReserveCoins;
-		private HodlTokenInfo _info;
+		private long _AccumulatedDevFee;
+
+        private HodlTokenInfo _info;
 
         public HodlErgoBankBox(Box<long> bankBox, HodlTokenInfo info)
 		{
 			_bankBox = bankBox;
 			_NumCirculatingReserveCoins = SParse(_bankBox.additionalRegisters.R4);
-			_info = info;
+			_AccumulatedDevFee = SParse(_bankBox.additionalRegisters.R5);
+            _info = info;
 		}
 
 		public Box<long> GetBox()
@@ -45,10 +48,18 @@ namespace HodlCoin.Client.HodlCoinImpl
 			return _NumCirculatingReserveCoins;
 		}
 
-		/// Provides the base(Erg) reserves of the Bank. This is the total amount
-		/// of nanoErgs held inside, minus the minimum box value required for
-		/// posting a box on-chain
-		public long BaseReserves()
+        public long AccumulatedDevFees()
+        {
+            return _AccumulatedDevFee;
+        }
+
+        /// Provides the base(Erg) reserves of the Bank. This is the total amount
+        /// of nanoErgs held inside, minus the minimum box value required for
+        /// posting a box on-chain <summary>
+        /// Provides the base(Erg) reserves of the Bank. This is the total amount
+		/// 
+        /// this already exclused the accumulated dev fee!
+        public long BaseReserves()
 		{
 			var value = 0L;
 
@@ -60,6 +71,8 @@ namespace HodlCoin.Client.HodlCoinImpl
 			else {
                 value = _bankBox.assets.ElementAt(0).amount;
             }
+
+			value -= _AccumulatedDevFee;
 
             return value;
 		}
@@ -81,17 +94,9 @@ namespace HodlCoin.Client.HodlCoinImpl
 			return feelessCost + protocolFee;
 		}
 
-		//Needed because we do 3 output boxes and they each have to have a minimum of 0.001 ERG.
 		public long CalculateDevFee(long baseCost)
 		{
             var devFee = (long)((double)baseCost * Parameters.DEV_FEE_PERCENT);
-			if (_info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
-			{
-                var devFeeSingle = devFee / 3L;
-                if (devFeeSingle < Parameters.MINIMUM_DEV_FEE_ERG) devFeeSingle = Parameters.MINIMUM_DEV_FEE_ERG;
-                devFee = devFeeSingle * 3L;
-            }
-
 			return devFee;
         }
 
@@ -160,7 +165,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 		//Methods for creating the candicate
 		/// Create an `OutputBuilder` for the output Bank box for the
 		/// `Mint ReserveCoin` action
-		public OutputBuilder CreateMintReserveCoinCandidate(Box<long> inputBankBox, long amountToMint, long circulatingReservecoinsOut, long reservecoinValueInBase)
+		public OutputBuilder CreateMintReserveCoinCandidate(Box<long> inputBankBox, long amountToMint, long circulatingReservecoinsOut, long reservecoinValueInBase, long totalDevFee)
 		{
 			if (_info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000") {
 				//ERG base
@@ -170,7 +175,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 				var reservecoinTokens = new TokenAmount<long> { tokenId = _info.tokenId, amount = (long)(bankReservecoinTokenIn.amount - amountToMint) };
 				var obbTokens = new List<TokenAmount<long>> { reservecoinTokens, nftToken };
 
-				var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)) };
+                var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)), R5 = SConstant(SLong(_AccumulatedDevFee + totalDevFee)) };
 
 				var outputBankCandidate = new OutputBuilder((long)(inputBankBox.value + reservecoinValueInBase), ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(_info.contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
 					.AddTokens(obbTokens)
@@ -181,7 +186,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 			else
 			{
 				//Token base
-				var baseTokensIn = inputBankBox.assets[0];
+				/*var baseTokensIn = inputBankBox.assets[0];
 				var bankReservecoinTokenIn = inputBankBox.assets[1];
 				var nftToken = inputBankBox.assets[2];
 
@@ -189,18 +194,19 @@ namespace HodlCoin.Client.HodlCoinImpl
                 var baseTokensOut = new TokenAmount<long> { tokenId = baseTokensIn.tokenId, amount = (long)(baseTokensIn.amount + reservecoinValueInBase) };
                 var obbTokens = new List<TokenAmount<long>> { baseTokensOut, reservecoinTokens, nftToken };
 
-                var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)) };
+                var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)), R5 = inputBankBox.additionalRegisters.R5 };
 
                 var outputBankCandidate = new OutputBuilder(inputBankBox.value, ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(_info.contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
                     .AddTokens(obbTokens)
                     .SetAdditionalRegisters(registers);
 
-                return outputBankCandidate;
+                return outputBankCandidate;*/
+				return null;
             }
-            
-		}
 
-		public OutputBuilder CreateRedeemReserveCoinCandidate(Box<long> inputBankBox, long amountToRedeem, long circulatingReservecoinsOut, long reservecoinValueInBase)
+        }
+
+		public OutputBuilder CreateRedeemReserveCoinCandidate(Box<long> inputBankBox, long amountToRedeem, long circulatingReservecoinsOut, long reservecoinValueInBase, long totalDevFee)
 		{
 			var bankReservecoinTokenIn = inputBankBox.assets[0];
 
@@ -208,13 +214,30 @@ namespace HodlCoin.Client.HodlCoinImpl
 			var nftToken = inputBankBox.assets[1];
 			var obbTokens = new List<TokenAmount<long>> { reservecoinTokens, nftToken };
 
-			var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)) };
+			var registers = new NonMandatoryRegisters { R4 = SConstant(SLong((long)circulatingReservecoinsOut)), R5 = SConstant(SLong(_AccumulatedDevFee + totalDevFee))};
 
-            var outputBankCandidate = new OutputBuilder((long)(inputBankBox.value - reservecoinValueInBase), ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(_info.contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
+            var outputBankCandidate = new OutputBuilder((long)(inputBankBox.value - reservecoinValueInBase + totalDevFee), ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(_info.contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
 				.AddTokens(obbTokens)
 				.SetAdditionalRegisters(registers);
 
 			return outputBankCandidate;
 		}
-	}
+
+        public OutputBuilder CreateWithdrawDevFeesCandidate(Box<long> inputBankBox, long amountToWithdraw)
+        {
+            var bankReservecoinTokenIn = inputBankBox.assets[0];
+
+            var reservecoinTokens = new TokenAmount<long> { tokenId = _info.tokenId, amount = bankReservecoinTokenIn.amount };
+            var nftToken = inputBankBox.assets[1];
+            var obbTokens = new List<TokenAmount<long>> { reservecoinTokens, nftToken };
+
+            var registers = new NonMandatoryRegisters { R4 = SConstant(SLong(_NumCirculatingReserveCoins)), R5 = SConstant(SLong(_AccumulatedDevFee - amountToWithdraw)) };
+
+            var outputBankCandidate = new OutputBuilder((long)(inputBankBox.value - amountToWithdraw), ErgoAddress.fromErgoTree(ErgoAddress.fromBase58(_info.contractAddress).GetErgoTreeHex(), Parameters.NETWORK))
+                .AddTokens(obbTokens)
+                .SetAdditionalRegisters(registers);
+
+            return outputBankCandidate;
+        }
+    }
 }
