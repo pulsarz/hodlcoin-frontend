@@ -37,8 +37,9 @@ namespace HodlCoin.Client.HodlCoinImpl
                             new TokenAmount<long> { tokenId = bankId, amount = 1 }
                         })
 						.SetAdditionalRegisters(new NonMandatoryRegisters {
-							R4 = SConstant(SLong(amtToBurn))
-						})
+							R4 = SConstant(SLong(amtToBurn)),
+							R5 = SConstant(SLong(0))//dev fee starts at 0
+                        })
                 })
 				.burnTokens(new List<TokenAmount<long>> { new TokenAmount<long> { tokenId = tokenId, amount = amtToBurn } })
                 .sendChangeTo(changeAddress)

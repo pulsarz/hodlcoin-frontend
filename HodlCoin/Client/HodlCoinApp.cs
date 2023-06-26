@@ -53,7 +53,7 @@ namespace HodlCoin.Client
 			}
 
 			//Setting up the output boxes
-			var outputBankCandidate = bankBox.CreateMintReserveCoinCandidate(bankBox.GetBox(), amountToMint, circulatingReservecoinsOut, reservecoinValueInBase);
+			var outputBankCandidate = bankBox.CreateMintReserveCoinCandidate(bankBox.GetBox(), amountToMint, circulatingReservecoinsOut, reservecoinValueInBase, 0L);
 
 			// Create the Receipt box candidate
 			var receiptBoxCandidate = HodlErgoReceiptBox.CreateMintReserveCoinCandidate(info, bankBox.GetBox(), amountToMint, userAddress, reservecoinValueInBase);
@@ -81,7 +81,6 @@ namespace HodlCoin.Client
 
             var inputReservecoinsTotal = rcBoxes.SelectMany(x => x.assets).Where(x => x.tokenId == info.tokenId).Sum(x => x.amount);
 
-            var baseReservesIn = bankBox.BaseReserves();
             var circulatingReservecoinsIn = bankBox.NumCirculatingReserveCoins();
             var reservecoinValueInBase = bankBox.BaseAmountFromRedeemingReserveCoin(amountToRedeem);
 
@@ -92,7 +91,6 @@ namespace HodlCoin.Client
                 throw new Exception("Insufficient reservecoins in the bank!");
             }
 
-            var baseReservesOut = baseReservesIn - reservecoinValueInBase;
             var circulatingReservecoinsOut = circulatingReservecoinsIn - amountToRedeem;
 
 
@@ -113,7 +111,7 @@ namespace HodlCoin.Client
 
 
             //Setting up the output boxes
-            var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase);
+            var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase, devFee);
 
             // Create the Receipt box candidate
             var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
@@ -123,18 +121,55 @@ namespace HodlCoin.Client
                 receiptBoxCandidate
             };
 
-            if (devFee > 0)
+            var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
+
+            var txBuilder = new TransactionBuilder(currentHeight)
+            .from(ergsBoxes)
+            .fromForcedInclusion(forceInclusionInput)
+            .to(outputs)
+            .sendChangeTo(userAddress)
+            .payFee(txFee);
+
+            return txBuilder;
+        }
+
+        public static TransactionBuilder ActionWithdrawDevFees(HodlTokenInfo info, List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToWithdraw, ErgoAddress userAddress, long txFee, long currentHeight)
+        {
+            var amountToWithdrawDividedByThree = amountToWithdraw / 3L;
+            var totalDevFeeWithdrawal = amountToWithdrawDividedByThree * 3L;
+
+            var accumulatedDevFees = bankBox.AccumulatedDevFees();
+
+            if (accumulatedDevFees <= 0)
             {
-                //total dev fee is 0.3% but split across 3 addresses
-                var devFeeSingle = devFee / 3L;
-                if (info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000" && devFeeSingle < Parameters.MINIMUM_DEV_FEE_ERG) devFeeSingle = Parameters.MINIMUM_DEV_FEE_ERG;
-
-                //ToDo: token support in ActionRedeemHodlCoin
-
-                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS1)));
-                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS2)));
-                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS3)));
+                throw new Exception($"There are no dev fees in the bank currently.");
             }
+
+            if (accumulatedDevFees < totalDevFeeWithdrawal)
+            {
+                throw new Exception($"Requested to withdraw {totalDevFeeWithdrawal} nERG (with rounding error correction) of fees but there are only {accumulatedDevFees} nERG of fees in the box.");
+            }
+
+            if (amountToWithdrawDividedByThree < Parameters.MIN_BOX_VALUE)
+            {
+                throw new Exception($"Value of dev fee boxes would be less then the minimum safe box value.");
+            }
+
+            //Setting up the output boxes
+            var outputBankCandidate = bankBox.CreateWithdrawDevFeesCandidate(bankBox.GetBox(), totalDevFeeWithdrawal);
+
+            // Create the Receipt box candidate
+            var devFeeBoxes = new List<OutputBuilder> {
+                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS1)),
+                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS2)),
+                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS3))
+            };
+
+            var outputs = new List<OutputBuilder> {
+                outputBankCandidate,
+            };
+
+            outputs.AddRange(devFeeBoxes);
 
             var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
 
