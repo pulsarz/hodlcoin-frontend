@@ -8,43 +8,69 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>hodlCoin Setup</PageTitle>
-@*
+
 <div style="height: 100vh;">
 	<MudLoading @bind-Loading="_loading" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
         <MudGrid Justify="Justify.Center" Class="mt-16" Style="align-items: center;">
-            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+            <MudItem xs="12" Class="d-flex gap-4 align-center flex-wrap">
                 <h3>Mint hodlCoin Bank NFT</h3>
                 <MudPaper Class="mud-width-full" Style="position: relative">
                     <MudStack Row=true>
+                        <MudTextField @bind-Value="BankNFTName" Label="Name" Variant="Variant.Text"/>
+                        <MudTextField @bind-Value="BankNFTDescription" Label="Description" Variant="Variant.Text" />
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlBankNFT">Mint hodlCoin Bank NFT</MudButton>
                     </MudStack>
                 </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+
+            <MudItem xs="12" Class="d-flex gap-4 align-center flex-wrap">
                 <h3>Mint all hodlCoin tokens</h3>
                 <MudPaper Class="mud-width-full" Style="position: relative">
                     <MudStack Row=true>
+                        <MudTextField @bind-Value="HodlTokenName" Label="Name" Variant="Variant.Text" />
+                        <MudTextField @bind-Value="HodlTokenDescription" Label="Description" Variant="Variant.Text" />
+                        <MudNumericField @bind-Value="HodlTokenAmount" HideSpinButtons="true" Label="Amount (so for ERG the value in nERG)" Variant="Variant.Text" />
+                        <MudNumericField @bind-Value="HodlTokenDecimals" HideSpinButtons="true" Label="Decimals" Variant="Variant.Text" />
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlTokens">Mint all holdCoin tokens</MudButton>
                     </MudStack>
                 </MudPaper>
             </MudItem>
 
-            <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
+            <MudItem xs="12" Class="d-flex gap-4 align-center flex-wrap">
                 <h3>Create hodlCoin bank box</h3>
                 <MudPaper Class="mud-width-full" Style="position: relative">
                     <MudStack Row=true>
+                        <MudTextField @bind-Value="MintBankBoxBankBoxID" Label="Bank box ID" Variant="Variant.Text" />
+                        <MudTextField @bind-Value="MintBankBoxTokenID" Label="Token ID" Variant="Variant.Text" />
+                        <MudNumericField @bind-Value="MintBankBoxMaxSupply" HideSpinButtons="true" Label="Amt tokens" Variant="Variant.Text" />
+                        <MudNumericField @bind-Value="MintBankBoxAmtToBurn" HideSpinButtons="true" Label="Amt tokens to burn" Variant="Variant.Text" />
+                        <MudNumericField @bind-Value="MintBankBoxBoxValue" HideSpinButtons="true" Label="Box value" Variant="Variant.Text" />
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MintHodlCoinBankBox">Mint hodlCoin bank box</MudButton>
                     </MudStack>
                 </MudPaper>
             </MudItem>
 		</MudGrid>
 	</MudLoading>
-</div>*@
+</div>
 
 @code {
-   /* bool _loading = false;
+   bool _loading = false;
     string _loadingText = "";
+
+    string BankNFTName = "";
+    string BankNFTDescription = "";
+
+    string HodlTokenName = "";
+    string HodlTokenDescription = "";
+    long HodlTokenAmount = 0;
+    int HodlTokenDecimals = 0;
+
+    string MintBankBoxBankBoxID = "";
+    string MintBankBoxTokenID = "";
+    long MintBankBoxMaxSupply= 0;
+    long MintBankBoxAmtToBurn= 0;
+    long MintBankBoxBoxValue = 0;
 
     [Inject] private IDialogService DialogService { get; set; }
 
@@ -97,7 +123,7 @@
                     _loadingText = "Building transaction...";
                     StateHasChanged();
 
-                    var builder = HodlCoinImpl.Initialize.BuildMintBankNFT(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var builder = HodlCoinImpl.Initialize.BuildMintBankNFT(allUTXOs, height, ErgoAddress.fromBase58(changeAddress), BankNFTName, BankNFTDescription);
                     var tx = builder.build().ToEIP12Object();
 
                     if (tx != null)
@@ -193,7 +219,7 @@
                     _loadingText = "Building transaction...";
                     StateHasChanged();
 
-                    var builder = HodlCoinImpl.Initialize.BuildMintHodlToken(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var builder = HodlCoinImpl.Initialize.BuildMintHodlToken(allUTXOs, height, ErgoAddress.fromBase58(changeAddress), HodlTokenAmount, HodlTokenName, HodlTokenDecimals, HodlTokenDescription);
                     var tx = builder.build().ToEIP12Object();
 
                     if (tx != null)
@@ -289,7 +315,7 @@
                     _loadingText = "Building transaction...";
                     StateHasChanged();
 
-                    var builder = HodlCoinImpl.Initialize.BuildInitialBankBox(allUTXOs, height, ErgoAddress.fromBase58(changeAddress));
+                    var builder = HodlCoinImpl.Initialize.BuildInitialBankBox(allUTXOs, height, ErgoAddress.fromBase58(changeAddress), HodlCoinImpl.Parameters.CONTRACT_ADDRESS_ERG, MintBankBoxBankBoxID, MintBankBoxTokenID, MintBankBoxMaxSupply, MintBankBoxAmtToBurn, MintBankBoxBoxValue);
                     var tx = builder.build().ToEIP12Object();
 
 
@@ -336,5 +362,5 @@
             }
             StateHasChanged();
         }
-    }*/
+    }
 }

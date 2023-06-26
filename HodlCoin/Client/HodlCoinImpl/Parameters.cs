@@ -29,11 +29,13 @@ namespace HodlCoin.Client.HodlCoinImpl
         public const long MIN_BOX_VALUE = OutputBuilder.SAFE_MIN_BOX_VALUE;
 
 		public const double DEV_FEE_PERCENT = 0.003;
-		public const long MINIMUM_DEV_FEE = 1000000L;//0.001 ERG
-		//ToDo: Change me to mainnet address AND in the eroscript enable this!!!!
-		public const string DEV_FEE_ADDRESS = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
+		public const long MINIMUM_DEV_FEE_ERG = 1000000L;//0.001 ERG, per box
+                                                     //ToDo: Change me to mainnet address AND in the eroscript enable this!!!!
+        public const string DEV_FEE_ADDRESS1 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
+        public const string DEV_FEE_ADDRESS2 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
+        public const string DEV_FEE_ADDRESS3 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
 
-		public const string CONTRACT_ADDRESS_ERG = "axXSXt1Kgwe67ndmBtujKtjRBG7MFiREBfYwXTMAhn4W4p5WzZ2mPrmrGZSqpSERBjAzLtjw9E8k6TxzssqVvFkHZj14hPvzuikkmNwk7rqEYnQacmdTH4DVU74y9rRLebyV3kQScFSLtgzQteZykhMHY73yxf5okC2gUrbiEbzhsPMo9Mj4UrneBVkNLSxVR4q9kepNKExbVHnqzWuqFh2nrFdD8cZCUSxnpQ7pfJZXFXg6AWGiEXW5kfSwS14LMLYNDFWNkQir93PcZamJnq92eaz7DenjRvxQK1ecoLLZznK8VkMcdaUsh5KceVS1ehikjcNa4EahYwEmiP67DQrUk67j7tFLnjdDCmWtGjRGgjwpuxkmqZM5e6N6A8kyLgk2gaGGABUyaioCXCUbtG56D4yEuHBaRJj7c294GNRmt4jyRTwvwjRJni8jPYxsSD2TxnSkpdHpqR";
+        public const string CONTRACT_ADDRESS_ERG = "Y2S1gAniW8TBEqubZBoa4UFH9MjMzqH8FTSi2JhQdmW6QJKHNweqVZhfdso5xdAHzhaa8Myd8LgEpn6BTryv2VReMGdmtuBR4wv8bFN7VWTbcTBdVDKAPzJJjsP9tNuZyjvkVPBGTEAvytSeRVyG29FcV6kQbCyF4gwy4i1GwCrHFX5Rmci9Duy6RM7fqQxMCBEtNG8YYSXJ46ao4cCmD8Xki45TnubWimXQQiAjgTdqVvz5tVg66pTjb9GN6si38keSxUtP5aGdJ4G1QJnQMc7QQhnXPyb61mAQyBF2qnyCgubyyiV7Qb7ifEFsd6SorA2ekBs6FWSsckkNYhrkj5ubvZdu1cm4tQZVyN6QAjEeJ43LqcagJtpn4ZtsVg6SqPVqNSWDKyHSavGk8P2dBUzZYL9Q5tTwbXzdAsqhWgzVGsbqgxBo6WB7xdRUnNq";
 		public const string CONTRACT_ADDRESS_TOKEN = "";//ToDo: create contract for tokens
 
 		public static List<HodlTokenInfo> tokens = new List<HodlTokenInfo>()
@@ -42,8 +44,8 @@ namespace HodlCoin.Client.HodlCoinImpl
 				new HodlTokenInfo {
 					name = "hodlERG",
 					description = "hodlERG 3%",
-					bankNFTTokenId = "cecf2ede5dff47230f031556ddb173ca76f506dad2131b844b79fa1f64fe150c",
-					tokenId = "d842bfc3723a17144861ed3aa7cac4af23a159f1ea8adcdc5fdefd6e3d4aca7a",
+					bankNFTTokenId = "fb645d484218923dee9adfa42d90faf4c29ae862f0e5130f873e5b0bfece37c0",
+					tokenId = "2679615d28e1d0289eff28b71b7c93dcd7210a6419fa56a7df5f5f8ea1740d83",
 					decimals = 9,
 					maxSupply = 97739924000000000L,
 					preciseFactor = 1000L,

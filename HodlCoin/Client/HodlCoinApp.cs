@@ -85,8 +85,7 @@ namespace HodlCoin.Client
             var circulatingReservecoinsIn = bankBox.NumCirculatingReserveCoins();
             var reservecoinValueInBase = bankBox.BaseAmountFromRedeemingReserveCoin(amountToRedeem);
 
-            var devFee = (long)(reservecoinValueInBase * Parameters.DEV_FEE_PERCENT);
-            if (devFee < Parameters.MINIMUM_DEV_FEE) devFee = Parameters.MINIMUM_DEV_FEE;
+            var devFee = bankBox.CalculateDevFee(reservecoinValueInBase);
 
             if (circulatingReservecoinsIn < amountToRedeem)
             {
@@ -126,7 +125,15 @@ namespace HodlCoin.Client
 
             if (devFee > 0)
             {
-                outputs.Add(new OutputBuilder(devFee, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS)));
+                //total dev fee is 0.3% but split across 3 addresses
+                var devFeeSingle = devFee / 3L;
+                if (info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000" && devFeeSingle < Parameters.MINIMUM_DEV_FEE_ERG) devFeeSingle = Parameters.MINIMUM_DEV_FEE_ERG;
+
+                //ToDo: token support in ActionRedeemHodlCoin
+
+                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS1)));
+                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS2)));
+                outputs.Add(new OutputBuilder(devFeeSingle, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS3)));
             }
 
             var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
