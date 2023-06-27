@@ -76,7 +76,7 @@
             </MudItem>
         </MudGrid>
 
-        <MudIconButton Icon="@Icons.Material.Filled.Coffee" Color="Color.Primary" Title="@string.Format($"Execute dev fee withdrawal ({latestBankBox?.AccumulatedDevFees() / Math.Pow(10,hodlToken.baseTokenDecimals)} {hodlToken.baseTokenName})")" OnClick="ExecuteDevFeeWithdrawal" Style="float: right;"></MudIconButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Coffee" Size="Size.Small" Color="Color.Dark" Title="@string.Format($"Trigger dev fee withdrawal ({latestBankBox?.AccumulatedDevFees() / Math.Pow(10,hodlToken.baseTokenDecimals)} {hodlToken.baseTokenName})")" OnClick="ExecuteDevFeeWithdrawal" Style="float: right;"></MudIconButton>
     </MudLoading>
 </div>
 

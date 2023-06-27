@@ -32,11 +32,16 @@
             
         </div>
 
-        <article class="content px-4" style="height: calc(100vh - 3.5rem - 2vh);">
+        <article class="content px-4" style="min-height: calc(100vh - 3.5rem - 2vh - 32px);">
             <CascadingValue Value=updateWalletInfo>
                 @Body
             </CascadingValue>
         </article>
+
+        <div class="bottom-row px-4" style="text-align: right;">
+            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-frontend/" Target="_blank">User Interface</MudChip>
+            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-contracts" Target="_blank">Contracts</MudChip>
+        </div>
     </main>
 </div>
 
