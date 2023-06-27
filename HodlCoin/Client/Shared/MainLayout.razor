@@ -1,4 +1,5 @@
 ﻿@using HodlCoin.Client.HodlCoinImpl;
+@using System.Text.Json;
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
@@ -32,7 +33,9 @@
         </div>
 
         <article class="content px-4" style="height: calc(100vh - 3.5rem - 2vh);">
-            @Body
+            <CascadingValue Value=updateWalletInfo>
+                @Body
+            </CascadingValue>
         </article>
     </main>
 </div>
@@ -41,11 +44,14 @@
     bool isConnected = false;
     string hodlCoinBalanceText = "";
 
+    EventCallback updateWalletInfo => EventCallback.Factory.Create(this, SetUIbasedOnWalletStatus);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _= SetUIbasedOnWalletStatus();
+            //already called in updateui in component
+           // _= SetUIbasedOnWalletStatus();
         }
     }
 
@@ -59,10 +65,21 @@
 
         if(isConnected)
         {
+            //get all addresses
+            List<string> addresses = await Wallet.GetWalletAddressList(JS);
+            Console.WriteLine($"All wallet addresses: {JsonSerializer.Serialize(addresses)}");
+
+            //use explorer directly instead of wallet since wallet balance does not update until you reopen nautilus for some reason (well, use node interface).
+            var balances = await Config.explorer.GetAddressesBalances(addresses);
+            Console.WriteLine($"All wallet addresses balances: {JsonSerializer.Serialize(balances)}");
+            //todo: account for unconfirmed?
+            var flatTokens = balances.Where(x => x.confirmed != null && x.confirmed.tokens != null).SelectMany(x => x.confirmed.tokens).ToList();
+
             //get balance of all hodlTokens
             foreach (HodlTokenInfo entry in Parameters.tokens)
             {
-                var balance = await Wallet.GetBalance(JS, entry.tokenId);
+                //var balance = await Wallet.GetBalance(JS, entry.tokenId);
+                var balance = flatTokens.Where(x => x.tokenId == entry.tokenId).Sum(x => x.amount);
                 if (balance > 0) coinTexts.Add($"{(balance / Math.Pow(10, entry.decimals)).ToString()} {entry.name}");
             }
 

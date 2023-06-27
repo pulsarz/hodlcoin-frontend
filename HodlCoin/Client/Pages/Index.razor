@@ -18,7 +18,9 @@
         {
             string text = token.description;
             <MudTabPanel Text="@text" Style="height: 100%;">
+                <CascadingValue Value=updateWalletInfo>
                 <HodlComponent hodlToken="@token"></HodlComponent>
+                </CascadingValue>
             </MudTabPanel>
         }
     </MudTabs>
@@ -26,6 +28,9 @@
 
 
 @code {
+    [CascadingParameter]
+    public EventCallback updateWalletInfo { get; set; }
+
     HodlTokenInfo test = HodlCoinImpl.Parameters.tokens.First();
     protected override async Task OnInitializedAsync()
     {

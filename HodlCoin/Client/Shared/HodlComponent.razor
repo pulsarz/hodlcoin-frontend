@@ -82,10 +82,13 @@
 
 
 @code {
+    [CascadingParameter]
+    public EventCallback updateWalletInfo { get; set; }
+
     [Parameter]
     public HodlTokenInfo hodlToken { get; set; }
     [Parameter]
-    public int AutoRefreshInterval { get; set; } = 1000 * 30;
+    public int AutoRefreshInterval { get; set; } = 1000 * 60;
 
     bool _loading = false;
     string _loadingText = "";
@@ -123,6 +126,8 @@
             return;
         }
 
+        await UpateUIValues();//also gets latest bank box
+
         var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
 
         //fetch latest box..
@@ -139,6 +144,8 @@
             RedeemHodlCoinWorth = $"0 {hodlToken.baseTokenName}";
             return;
         }
+
+        await UpateUIValues();//also gets latest bank box
 
         var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
 
@@ -163,7 +170,7 @@
             };
         
         //Auto refresh dashboard
-        if (timer == null && AutoRefreshInterval > 0)
+        /*if (timer == null && AutoRefreshInterval > 0)
         {
             timer = new Timer(new TimerCallback(_ =>
             {
@@ -172,7 +179,7 @@
                     await UpateUIValues();
                 });
             }), null, AutoRefreshInterval, AutoRefreshInterval);
-        }
+        }*/
 
         await UpateUIValues();
     }
@@ -181,6 +188,9 @@
     {
         _loadingStats = true;
         StateHasChanged();
+
+        //Also update wallet balance
+        await updateWalletInfo.InvokeAsync();
 
         try
         {
@@ -342,7 +352,7 @@
                 await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
             }
 
-            await UpateUIValues(false);
+            await UpateUIValues();
         }
     }
 
