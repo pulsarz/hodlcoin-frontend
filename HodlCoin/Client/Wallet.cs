@@ -25,8 +25,9 @@ namespace HodlCoin.Client
             if (connectedWallet != null && connectedWallet != "")
             {
                 await ConnectWallet(JS, localStorage);
+                return await JS.InvokeAsync<bool>("isWalletConnected");
             }
-            return await JS.InvokeAsync<bool>("isWalletConnected");
+            return false;
         }
 
         public static async Task<bool> ConnectWallet(IJSRuntime JS, ILocalStorageService localStorage)
