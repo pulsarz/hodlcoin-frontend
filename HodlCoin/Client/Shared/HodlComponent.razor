@@ -65,12 +65,12 @@
             </MudItem>
 
             <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
-                <h3>@string.Format($"Redeeming {hodlToken.name}")</h3>
-                <MudText>@string.Format($"When redeeming your {hodlToken.name}, there is a {hodlToken.feePercent}% protocol fee and a {HodlCoinImpl.Parameters.DEV_FEE_PERCENT * 100}% dev fee associated with the process. The protocol fee contributes to the overall dynamics of the ecosystem.")</MudText>
+                <h3>@string.Format($"Burning {hodlToken.name}")</h3>
+                <MudText>@string.Format($"When burning your {hodlToken.name}, there is a {hodlToken.feePercent}% protocol fee and a {HodlCoinImpl.Parameters.DEV_FEE_PERCENT * 100}% dev fee associated with the process. The protocol fee contributes to the overall dynamics of the ecosystem.")</MudText>
                 <MudPaper Class="mud-width-full" Style="position: relative">
                     <MudStack Row=true>
                         <MudNumericField @bind-Value="RedeemHodlCoinAmount" HideSpinButtons="true" HelperText="@RedeemHodlCoinWorth" TextChanged="@RedeemHodlCoinAmountChanged" Label="Amount" Variant="Variant.Text" Min="0M" Step="1M" Converter="@converter" />
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RedeemHodlCoin">@string.Format($"Redeem {hodlToken.name}")</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RedeemHodlCoin">@string.Format($"Burn {hodlToken.name}")</MudButton>
                     </MudStack>
                 </MudPaper>
             </MudItem>
