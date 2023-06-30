@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using FleetSharp;
 using FleetSharp.Types;
+using HodlCoin.Client.HodlCoinImpl;
 using Microsoft.JSInterop;
 using System.Numerics;
 using System.Text.Json;
@@ -108,6 +109,27 @@ namespace HodlCoin.Client
         {
 			//serialize object ourselves otherwise the casing is changed.. lmao good design choice MS.
 			return await JS.InvokeAsync<string?>("processTx", JsonSerializer.Serialize(unsignedTX, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }));
+        }
+
+        //Uses the address list from nautilus but uses explorer directly to get the balance. Since nautilus only updates balances on opening the wallet.
+        public static async Task<long> GetExplorerBalance(IJSRuntime JS, string tokenId = "ERG")
+        {
+            List<string> addresses = await Wallet.GetWalletAddressList(JS);
+            Console.WriteLine($"All wallet addresses: {JsonSerializer.Serialize(addresses)}");
+
+            //use explorer directly instead of wallet since wallet balance does not update until you reopen nautilus for some reason (well, use node interface).
+            var balances = await Config.explorer.GetAddressesBalances(addresses);
+            Console.WriteLine($"All wallet addresses balances: {JsonSerializer.Serialize(balances)}");
+
+            if (tokenId == "ERG")
+            {
+                return balances.Sum(x => x.confirmed?.nanoErgs ?? 0);
+            }
+            else
+            {
+                var flatTokens = balances.Where(x => x.confirmed != null && x.confirmed.tokens != null).SelectMany(x => x.confirmed.tokens).ToList();
+                return flatTokens.Where(x => x.tokenId == tokenId).Sum(x => x.amount);
+            }
         }
     }
 }

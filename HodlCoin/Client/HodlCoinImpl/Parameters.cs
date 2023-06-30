@@ -29,13 +29,10 @@ namespace HodlCoin.Client.HodlCoinImpl
         public const long MIN_BOX_VALUE = 1000000L;//0.001 ERG
 
 		public const double DEV_FEE_PERCENT = 0.003;
-                                                     //ToDo: Change me to mainnet address AND in the eroscript enable this!!!!
-        public const string DEV_FEE_ADDRESS1 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
-        public const string DEV_FEE_ADDRESS2 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
-        public const string DEV_FEE_ADDRESS3 = "3WyfzsRppTdUgJBEdi75HyNz3e2PfBeZJx53YoZoR7KtKJZrDUDV";
-
-        public const string CONTRACT_ADDRESS_ERG = "ATDbjU5VJUs87ckaw6WQjow4bZpDngic31uAN4fc5mMQWrwLmMwUeksSFPCDZ7iDmauQitG1YLM9qwQq9Yx7xo51JXARhSA3kDNW582euEAxueUUhQMXaN7BgNSusuqhKsJKAgYaY4gUWG85gF56PZ1oR9EfoWUzxxw944UKvpUbVSiHxQuxacnTvYAfnBUeYZvdRQDy6JxznNmzkrjm4XgcB19GgsyZDWfaxsf6hhRgHKDetJuwdm6M3LsNPiipdBEox7cANhZ2PogeH7eENBKzg6Zxis5C6ovSDMo14eMPrvC541DFr7vqqCkcyBxr8c1gBrBHDYKTjhTKeLykNCyiPet4PcvF1HHne1R1qCrChmYSwNgUKBPGCvEYkvu8vLiNeqhYGHR2asL1rQkvqFzUGoPkm7S5JWx3AycatUHD9iaCpxdjrXDeaVKmjiwNYWqbXxbg9LQsDjqadkKsdgZo62PBVqLeXW28vaqkDuXnFiKUUdS8eLZapAfCwBnZHGusHSxnFkmWcbjqF9oReS8Yk9BypHGJ8NUBLjXK2dz21TRKqRWFYkEWqAjjgqC8Lrygj8Cm3EQtcNMmt3Z94ArSSiCB8HsDW8icpZUjFa";
-		public const string CONTRACT_ADDRESS_TOKEN = "";//ToDo: create contract for tokens
+		
+        public const string DEV_FEE_ADDRESS1 = "3WymZ3DL8m7Uw67nUr7uAFUPB5V4PdidrhG9ZdhXdiL2E7mhvjtn";
+        public const string DEV_FEE_ADDRESS2 = "3WzHee44uHF82VmoGZyZQEb97c2E7ZoNDjmAcZx81weReUc9GA86";
+        public const string DEV_FEE_ADDRESS3 = "3WwVHEVXgq7gKtbpenLCovacwSTdBRB8d4AThGAHTfUELM5QuEx6";
 
 		public static List<HodlTokenInfo> tokens = new List<HodlTokenInfo>()
 		{
@@ -43,13 +40,13 @@ namespace HodlCoin.Client.HodlCoinImpl
 				new HodlTokenInfo {
 					name = "hodlERG",
 					description = "hodlERG 3%",
-					bankNFTTokenId = "e3fea267b489291a13ff69be05f5231a6fefdeed54a66b431f826e09ba150e09",
-					tokenId = "fffcba7b514f817d1a282f10356c23f398cbc34aa2dbf75e2a67128a7253c52e",
+					bankNFTTokenId = "bfc9dd7af3f9b9b107c03b62f41bfe3b335e474f11b065bcf5126295144e8a4f",
+					tokenId = "cab60a6fb68f111b294a4d77d8bb23ab733a608888301a2cc08d941f21ad7c2d",
 					decimals = 9,
 					maxSupply = 97739924000000000L,
 					preciseFactor = 1000L,
 					feePercent = 3,
-					contractAddress = CONTRACT_ADDRESS_ERG,
+					contractAddress = "32EYw1mCAKwSg8FV4oHEnYwnUv4GVkEb6DypH4eW9ye1Y4rfuDi3e4dLd3nPkPjVvYMDGgb3vmGiwtZqno6CFYd5JBPbnR2Gx1zEkpRaN6ZW5QFbS3kg44hKViPf48DgbiLZGjy7rkv8HqmpVAX9qBbn42nZDuarsjk37sMqjcSwcUJJBAKeZ2ZmsZSqG6x9gq1rSoGrEWdLrdGjio3tguSSJUWEvwBJ3fXPQ2pPrKSxZF7uzuyCNxde6tUAsQQc26W8Ytoh9nxiEdxYMWieMYULaCbF5WC6TMTYYbAiR1vQuvg7raKvX1rz62i7aKWHssJFmcMYsCL8WnnQh9MTenHHoSndchGG87KE9Aj2ewPyWQzMMsNKKryo2CNxJNkzyoad2F3E69KaGuddE3q2Sbr4V6jjuVUAAHtQV8UU4BwGPqhfxkVLXDqLcQP522es41ehTqcbb9siY9YRWuCnJyujPDzV5XCUdHCowLchLBfvifMvLvybH1syFGiyUxRMpZVriVTTpbu3m215AunRAQhiUhwGAw8Q9W",
 					baseTokenName = "ERG",
 					baseTokenId = "0000000000000000000000000000000000000000000000000000000000000000",
 					baseTokenDecimals = 9,

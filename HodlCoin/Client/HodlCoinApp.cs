@@ -82,9 +82,12 @@ namespace HodlCoin.Client
             var inputReservecoinsTotal = rcBoxes.SelectMany(x => x.assets).Where(x => x.tokenId == info.tokenId).Sum(x => x.amount);
 
             var circulatingReservecoinsIn = bankBox.NumCirculatingReserveCoins();
+
+            var reservecoinValueInBaseWithoutProtocolFee = bankBox.BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
             var reservecoinValueInBase = bankBox.BaseAmountFromRedeemingReserveCoin(amountToRedeem);
 
-            var devFee = bankBox.CalculateDevFee(reservecoinValueInBase);
+            //in new contract revision, it is calculated on total amount before protocol fee
+            var devFee = bankBox.CalculateDevFee(reservecoinValueInBaseWithoutProtocolFee);
 
             if (circulatingReservecoinsIn < amountToRedeem)
             {
@@ -150,9 +153,9 @@ namespace HodlCoin.Client
                 throw new Exception($"Requested to withdraw {totalDevFeeWithdrawal} nERG (with rounding error correction) of fees but there are only {accumulatedDevFees} nERG of fees in the box.");
             }
 
-            if (amountToWithdrawDividedByThree < Parameters.MIN_BOX_VALUE)
+            if (amountToWithdrawDividedByThree < 50000000L)
             {
-                throw new Exception($"Value of dev fee boxes would be less then the minimum safe box value.");
+                throw new Exception($"There has to be at least 0.15 ERG of dev fees in the box to trigger withdrawal.");
             }
 
             //Setting up the output boxes

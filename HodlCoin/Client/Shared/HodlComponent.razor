@@ -245,7 +245,7 @@
             return;
         }
 
-        var ergBalance = await Wallet.GetBalance(JS, "ERG");
+        var ergBalance = await Wallet.GetExplorerBalance(JS, "ERG");
         var costToMint = latestBankBox?.TotalCostToMintReserveCoin((long)(MintHodlCoinAmount * (decimal)Math.Pow(10, hodlToken.decimals)), Config.DEFAULT_TX_FEE);
         if (costToMint > ergBalance)
         {
@@ -370,7 +370,7 @@
             return;
         }
 
-        var hodlBalance = await Wallet.GetBalance(JS, hodlToken.tokenId);
+        var hodlBalance = await Wallet.GetExplorerBalance(JS, hodlToken.tokenId);
         if ((RedeemHodlCoinAmount * (decimal)Math.Pow(10, hodlToken.decimals)) > hodlBalance)
         {
             await DialogService.ShowMessageBox("Error", $"Amount exceeds wallet balance of {hodlBalance / Math.Pow(10, hodlToken.decimals)} {hodlToken.name}!");

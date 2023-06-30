@@ -20,12 +20,9 @@ namespace HodlCoin.Client.HodlCoinImpl
             var rbReservecoinToken = NewReserveCoinToken(info, amountToMint);
             var rbTokens = new List<TokenAmount<long>> { rbReservecoinToken };
 
-            var registers = new NonMandatoryRegisters { R4 = SConstant(SLong(amountToMint)), R5 = SConstant(SLong(reservecoinValueInBase)) };
-
             //Create the receipt box candidate
             var candidate = new OutputBuilder(Parameters.MIN_BOX_VALUE, userAddress)
-                .AddTokens(rbTokens)
-                .SetAdditionalRegisters(registers);
+                .AddTokens(rbTokens);
 
             return candidate;
         }
@@ -39,10 +36,6 @@ namespace HodlCoin.Client.HodlCoinImpl
             // ReserveCoins being redeemed - the transaction fee
             var rbValue = reservecoinValueInbase - txFee - devFee;
             if (rbValue < Parameters.MIN_BOX_VALUE) rbValue = Parameters.MIN_BOX_VALUE;
-
-            // Specify the registers in the Receipt box
-            var rbRegisters = new NonMandatoryRegisters { R4 = SConstant(SLong(0 - amountToRedeem)), R5 = SConstant(SLong(0 - reservecoinValueInbase)) };
-
             //Define the tokens
             var rbTokens = new List<TokenAmount<long>>();
 
@@ -57,8 +50,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 
             //Create the candidate
             var candidate = new OutputBuilder(rbValue, userAddress)
-                .AddTokens(rbTokens)
-                .SetAdditionalRegisters(rbRegisters);
+                .AddTokens(rbTokens);
 
             return candidate;
         }

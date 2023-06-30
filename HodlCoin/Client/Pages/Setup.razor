@@ -43,6 +43,7 @@
                     <MudStack Row=true>
                         <MudTextField @bind-Value="MintBankBoxBankBoxID" Label="Bank NFT ID" Variant="Variant.Text" />
                         <MudTextField @bind-Value="MintBankBoxTokenID" Label="Token ID" Variant="Variant.Text" />
+                        <MudTextField @bind-Value="MintBankBoxContractAddress" Label="Contract address" Variant="Variant.Text" />
                         <MudNumericField @bind-Value="MintBankBoxMaxSupply" HideSpinButtons="true" Label="Amt tokens" Variant="Variant.Text" />
                         <MudNumericField @bind-Value="MintBankBoxAmtToBurn" HideSpinButtons="true" Label="Amt tokens to burn" Variant="Variant.Text" />
                         <MudNumericField @bind-Value="MintBankBoxBoxValue" HideSpinButtons="true" Label="Box value" Variant="Variant.Text" />
@@ -68,6 +69,7 @@
 
     string MintBankBoxBankBoxID = "";
     string MintBankBoxTokenID = "";
+    string MintBankBoxContractAddress = "";
     long MintBankBoxMaxSupply= 0;
     long MintBankBoxAmtToBurn= 0;
     long MintBankBoxBoxValue = 0;
@@ -315,7 +317,7 @@
                     _loadingText = "Building transaction...";
                     StateHasChanged();
 
-                    var builder = HodlCoinImpl.Initialize.BuildInitialBankBox(allUTXOs, height, ErgoAddress.fromBase58(changeAddress), HodlCoinImpl.Parameters.CONTRACT_ADDRESS_ERG, MintBankBoxBankBoxID, MintBankBoxTokenID, MintBankBoxMaxSupply, MintBankBoxAmtToBurn, MintBankBoxBoxValue);
+                    var builder = HodlCoinImpl.Initialize.BuildInitialBankBox(allUTXOs, height, ErgoAddress.fromBase58(changeAddress), MintBankBoxContractAddress, MintBankBoxBankBoxID, MintBankBoxTokenID, MintBankBoxMaxSupply, MintBankBoxAmtToBurn, MintBankBoxBoxValue);
                     var tx = builder.build().ToEIP12Object();
 
 
