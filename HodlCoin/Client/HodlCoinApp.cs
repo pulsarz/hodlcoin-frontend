@@ -14,13 +14,22 @@ namespace HodlCoin.Client
             //Check if any boxes exist in mempool.
             var boxesInMempool = await node.GetBoxesFromMempoolByTokenId(info.bankNFTTokenId);
 
+            //GEt all txes from mempool for each such box because we need it to determine what the last unspent box is.
             if (boxesInMempool != null && boxesInMempool.Count > 0)
             {
                 Console.WriteLine($"Found {boxesInMempool.Count} bank boxes in mempool");
-                return boxesInMempool.Last();
+                var txes = await Helpers.GetTXesFromMempool(node, boxesInMempool.Select(x => x.transactionId).ToList());
+
+                var unspentBox = txes.SelectMany(x => x.outputs).Where(y => y.assets.Exists(z => z.tokenId == info.bankNFTTokenId) && !txes.SelectMany(z => z.inputs).ToList().Exists(z => z.boxId == y.boxId)).FirstOrDefault();
+                if (unspentBox != null)
+                {
+                    Console.WriteLine($"Latest unspent box = {JsonSerializer.Serialize(unspentBox)}");
+                    return unspentBox;
+                }
             }
 
             var lastBox = (await explorer.GetUnspentBoxesByTokenId(info.bankNFTTokenId))?.FirstOrDefault();
+            Console.WriteLine($"Last unspent box from explorer = {JsonSerializer.Serialize(lastBox)}");
 
             return lastBox;
         }
