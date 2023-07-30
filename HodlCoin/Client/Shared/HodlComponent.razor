@@ -33,7 +33,7 @@
                 <MudItem xs="12" sm="6" lg="4" Class="gap-4 align-center">
                     <MudCard>
                         <MudCardContent>
-                            <MudText Align="Align.Center">Circulating supply</MudText>
+                            <MudText Align="Align.Center">Emission amount</MudText>
                             <MudText Align="Align.Center" Typo="Typo.h4">@CurrentCirculatingSupply</MudText>
                         </MudCardContent>
                     </MudCard>
@@ -66,7 +66,7 @@
 
             <MudItem xs="12" sm="6" lg="3" Class="d-flex gap-4 align-center flex-wrap">
                 <h3>@string.Format($"Burning {hodlToken.name}")</h3>
-                <MudText>@string.Format($"When burning your {hodlToken.name}, there is a {hodlToken.feePercent}% protocol fee and a {HodlCoinImpl.Parameters.DEV_FEE_PERCENT * 100}% dev fee associated with the process. The protocol fee contributes to the overall dynamics of the ecosystem.")</MudText>
+                <MudText>@string.Format($"When burning your {hodlToken.name}, there is a {hodlToken.protocolFeePercentage}% protocol fee and a {hodlToken.devFeePercentage}% dev fee associated with the process. The protocol fee contributes to the overall dynamics of the ecosystem.")</MudText>
                 <MudPaper Class="mud-width-full" Style="position: relative">
                     <MudStack Row=true>
                         <MudNumericField @bind-Value="RedeemHodlCoinAmount" HideSpinButtons="true" HelperText="@RedeemHodlCoinWorth" TextChanged="@RedeemHodlCoinAmountChanged" Label="Amount" Variant="Variant.Text" Min="0M" Step="1M" Converter="@converter" />
@@ -75,8 +75,6 @@
                 </MudPaper>
             </MudItem>
         </MudGrid>
-
-        <MudIconButton Icon="@Icons.Material.Filled.Coffee" Size="Size.Small" Color="Color.Dark" Title="@string.Format($"Trigger dev fee withdrawal ({latestBankBox?.AccumulatedDevFees() / Math.Pow(10,hodlToken.baseTokenDecimals)} {hodlToken.baseTokenName})")" OnClick="ExecuteDevFeeWithdrawal" Style="float: right;"></MudIconButton>
     </MudLoading>
 </div>
 
@@ -215,8 +213,8 @@
             }
 
             decimal price = latestBankBox.BaseCostToMintReserveCoin((long)Math.Pow(10, hodlToken.decimals)) / (decimal)Math.Pow(10, hodlToken.baseTokenDecimals);
-            CurrentPrice = $"{price.ToString($"0.{hodlToken.preciseFactor.ToString().Substring(1)}")} {hodlToken.baseTokenName}";
-            CurrentRatio = $"1 {hodlToken.baseTokenName} ≈ {(latestBankBox.BaseAmountToReserveCoinAmount((long)Math.Pow(10, hodlToken.baseTokenDecimals)) / Math.Pow(10, hodlToken.decimals)).ToString($"0.{hodlToken.preciseFactor.ToString().Substring(1)}")} {hodlToken.name}";
+            CurrentPrice = $"{price.ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.baseTokenName}";
+            CurrentRatio = $"1 {hodlToken.baseTokenName} ≈ {(latestBankBox.BaseAmountToReserveCoinAmount((long)Math.Pow(10, hodlToken.baseTokenDecimals)) / Math.Pow(10, hodlToken.decimals)).ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.name}";
 
             CurrentCirculatingSupply = $"{String.Format("{0:#,0.#}", latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, hodlToken.decimals))} {hodlToken.name}";
 
@@ -468,116 +466,6 @@
         {
             RedeemHodlCoinAmount = 0;
 
-            bool? result = await DialogService.ShowMessageBox(
-            "Success!",
-            $"Transaction id = {transactionId}",
-            yesText: "Open in explorer", cancelText: "Close");
-            if (result == true)
-            {
-                await JS.InvokeVoidAsync("open", $"{Config.ExplorerURL}/en/transactions/{transactionId}", "_blank");
-            }
-
-            await UpateUIValues();
-        }
-    }
-
-    private async void ExecuteDevFeeWithdrawal()
-    {
-        if (!(await Wallet.IsWalletConnected(JS, localStorage)))
-        {
-            await DialogService.ShowMessageBox("Error", "Wallet not connected!");
-            return;
-        }
-
-        _loading = true;
-        StateHasChanged();
-
-        string? transactionId = null;
-
-        try
-        {
-            if (await Wallet.IsWalletConnected(JS, localStorage))
-            {
-                _loadingText = "Retrieving wallet change address...";
-                StateHasChanged();
-                var changeAddress = await Wallet.GetChangeAddress(JS);
-                Console.WriteLine($"Change address: {changeAddress}");
-
-                _loadingText = "Retrieving wallet unspent UTXO's...";
-                StateHasChanged();
-                var allUTXOs = await Wallet.GetUtxos(JS);
-                Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
-
-                _loadingText = "Retrieving current height...";
-                StateHasChanged();
-                var height = await Wallet.GetCurrentHeight(JS);
-                Console.WriteLine($"Current height: {height}");
-
-                if (allUTXOs != null && allUTXOs.Count > 0)
-                {
-                    //Test mint sigrsv
-                    if (allUTXOs == null || allUTXOs.Count == 0)
-                    {
-                        await DialogService.ShowMessageBox("Error", "No unspent boxes found in wallet!");
-                        _loading = false;
-                        StateHasChanged();
-                        return;
-                    }
-
-                    _loadingText = "Retrieving bank box...";
-                    StateHasChanged();
-
-                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer, hodlToken);
-                    if (bankBox == null)
-                    {
-                        await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
-                        _loading = false;
-                        StateHasChanged();
-                        return;
-                    }
-
-                    var bank = new HodlCoinImpl.HodlErgoBankBox(bankBox, hodlToken);
-
-                    latestBankBox = bank;
-                    await UpateUIValues(false);
-
-                    _loadingText = "Building transaction...";
-                    StateHasChanged();
-
-                    var builder = HodlCoinApp.ActionWithdrawDevFees(hodlToken, allUTXOs, bank, bank.AccumulatedDevFees(), ErgoAddress.fromBase58(changeAddress), TransactionBuilder.RECOMMENDED_MIN_FEE_VALUE, height);
-                    var tx = builder.build().ToEIP12Object();
-                    Console.WriteLine($"tx: {JsonSerializer.Serialize(tx)}");
-
-                    if (tx != null)
-                    {
-                        _loadingText = "Signing transaction...";
-                        StateHasChanged();
-
-                        var signedTx = await Wallet.SignTX(JS, tx);
-                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
-
-                        _loadingText = "Submitting transaction...";
-                        StateHasChanged();
-                        transactionId = await Wallet.SubmitTX(JS, signedTx);
-                        Console.WriteLine($"transactionId: {transactionId}");
-                    }
-                }
-            }
-            else
-            {
-                await DialogService.ShowMessageBox("Error", "Wallet not connected!");
-            }
-        }
-        catch (Exception e)
-        {
-            await DialogService.ShowMessageBox("Error", e.Message);
-        }
-
-        _loading = false;
-        StateHasChanged();
-
-        if (transactionId != null)
-        {
             bool? result = await DialogService.ShowMessageBox(
             "Success!",
             $"Transaction id = {transactionId}",

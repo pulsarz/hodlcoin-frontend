@@ -3,6 +3,7 @@
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using FleetSharp.Types;
 
 <MudThemeProvider IsDarkMode=true />
 <MudDialogProvider />
@@ -15,6 +16,10 @@
 
     <main>
         <div class="top-row auth px-4" style="background-color: rgba(0,0,0,0.00); border-bottom: unset;">
+            @if(Parameters.NETWORK != Network.Mainnet)
+            {
+                <MudText Color="Color.Warning" Align="Align.Left" Class="mr-4">!!! TESTNET VERSION !!!</MudText>
+            }
             <div style="float: right">
                 <MudStack Row=true Style="align-items: center;">
                     @if (!@isConnected)
@@ -40,7 +45,6 @@
 
         <div class="bottom-row px-4" style="text-align: right;">
             <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-frontend/" Target="_blank">User Interface</MudChip>
-            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-contracts" Target="_blank">Contracts</MudChip>
         </div>
     </main>
 </div>

@@ -11,8 +11,9 @@ namespace HodlCoin.Client
         //Currently node is needed for mempool.
         public static async Task<Box<long>?> GetLastHodlCoinBankBox(NodeInterface node, Explorer explorer, HodlTokenInfo info)
         {
-            //first check if there is any in mempool, if so use the last one and directly return it.
+            //Check if any boxes exist in mempool.
             var boxesInMempool = await node.GetBoxesFromMempoolByTokenId(info.bankNFTTokenId);
+
             if (boxesInMempool != null && boxesInMempool.Count > 0)
             {
                 Console.WriteLine($"Found {boxesInMempool.Count} bank boxes in mempool");
@@ -114,65 +115,18 @@ namespace HodlCoin.Client
 
 
             //Setting up the output boxes
-            var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase, devFee);
+            var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase);
 
             // Create the Receipt box candidate
             var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
 
-            var outputs = new List<OutputBuilder> {
-                outputBankCandidate,
-                receiptBoxCandidate
-            };
-
-            var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
-
-            var txBuilder = new TransactionBuilder(currentHeight)
-            .from(ergsBoxes)
-            .fromForcedInclusion(forceInclusionInput)
-            .to(outputs)
-            .sendChangeTo(userAddress)
-            .payFee(txFee);
-
-            return txBuilder;
-        }
-
-        public static TransactionBuilder ActionWithdrawDevFees(HodlTokenInfo info, List<Box<long>> ergsBoxes, HodlErgoBankBox bankBox, long amountToWithdraw, ErgoAddress userAddress, long txFee, long currentHeight)
-        {
-            var amountToWithdrawDividedByThree = amountToWithdraw / 3L;
-            var totalDevFeeWithdrawal = amountToWithdrawDividedByThree * 3L;
-
-            var accumulatedDevFees = bankBox.AccumulatedDevFees();
-
-            if (accumulatedDevFees <= 0)
-            {
-                throw new Exception($"There are no dev fees in the bank currently.");
-            }
-
-            if (accumulatedDevFees < totalDevFeeWithdrawal)
-            {
-                throw new Exception($"Requested to withdraw {totalDevFeeWithdrawal} nERG (with rounding error correction) of fees but there are only {accumulatedDevFees} nERG of fees in the box.");
-            }
-
-            if (amountToWithdrawDividedByThree < 50000000L)
-            {
-                throw new Exception($"There has to be at least 0.15 ERG of dev fees in the box to trigger withdrawal.");
-            }
-
-            //Setting up the output boxes
-            var outputBankCandidate = bankBox.CreateWithdrawDevFeesCandidate(bankBox.GetBox(), totalDevFeeWithdrawal);
-
-            // Create the Receipt box candidate
-            var devFeeBoxes = new List<OutputBuilder> {
-                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS1)),
-                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS2)),
-                new OutputBuilder(amountToWithdrawDividedByThree, ErgoAddress.fromBase58(Parameters.DEV_FEE_ADDRESS3))
-            };
+            var devFeeBoxCandidate = HodlErgoFeeBox.CreateFeeBoxCandidate(devFee);
 
             var outputs = new List<OutputBuilder> {
                 outputBankCandidate,
+                receiptBoxCandidate,
+                devFeeBoxCandidate
             };
-
-            outputs.AddRange(devFeeBoxes);
 
             var forceInclusionInput = new List<Box<long>> { bankBox.GetBox() };
 
