@@ -8,7 +8,7 @@ using static FleetSharp.Sigma.ISigmaCollection;
 using static FleetSharp.Sigma.IPrimitiveSigmaType;
 
 namespace HodlCoin.Client.HodlCoinImpl
-{
+{/*
 	public static class Initialize
 	{
 		public static TransactionBuilder BuildMintBankNFT(List<Box<long>> unspentWalletBoxes, long currentHeight, ErgoAddress changeAddress, string name, string description)
@@ -63,5 +63,5 @@ namespace HodlCoin.Client.HodlCoinImpl
 				.sendChangeTo(changeAddress)
 				.payMinFee();
 		}
-	}
+	}*/
 }
