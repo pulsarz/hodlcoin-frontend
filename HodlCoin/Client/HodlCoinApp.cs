@@ -20,7 +20,10 @@ namespace HodlCoin.Client
                 Console.WriteLine($"Found {boxesInMempool.Count} bank boxes in mempool");
                 var txes = await Helpers.GetTXesFromMempool(node, boxesInMempool.Select(x => x.transactionId).ToList());
 
-                var unspentBox = txes.SelectMany(x => x.outputs).Where(y => y.assets.Exists(z => z.tokenId == info.bankNFTTokenId) && !txes.SelectMany(z => z.inputs).ToList().Exists(z => z.boxId == y.boxId)).FirstOrDefault();
+                var outputBoxes = txes.SelectMany(x => x.outputs).ToList();
+                var inputBoxes = txes.SelectMany(x => x.inputs).ToList();
+
+                var unspentBox = outputBoxes.Where(y => y.assets.Exists(z => z.tokenId == info.bankNFTTokenId) && !inputBoxes.Exists(z => z.boxId == y.boxId)).FirstOrDefault();
                 if (unspentBox != null)
                 {
                     Console.WriteLine($"Latest unspent box = {JsonSerializer.Serialize(unspentBox)}");
