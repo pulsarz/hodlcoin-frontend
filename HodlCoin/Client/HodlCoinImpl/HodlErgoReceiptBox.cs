@@ -32,25 +32,24 @@ namespace HodlCoin.Client.HodlCoinImpl
             // Find how many ReserveCoin are inside of the ReserveCoin boxes
             var rcBoxesTotalRC = rcBoxes.Sum(x => x.assets.Where(y => y.tokenId == info.tokenId).Sum(y => y.amount));
 
-            // The amount of nanoErgs in the rc_boxes + the value of the
-            // ReserveCoins being redeemed - the transaction fee
-            var rbValue = reservecoinValueInbase - txFee - devFee;
-            if (rbValue < Parameters.MIN_BOX_VALUE) rbValue = Parameters.MIN_BOX_VALUE;
             //Define the tokens
-            var rbTokens = new List<TokenAmount<long>>();
+            var outputTokens = new List<TokenAmount<long>>();
+            long receiptBoxValue = 0;
 
-            // Check if there are any extra tokens that aren't being redeemed
-            // and include them in the output
-            if (rcBoxesTotalRC > amountToRedeem)
+            if (info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
             {
-                var amount = rcBoxesTotalRC - amountToRedeem;
-                var newRCToken = NewReserveCoinToken(info, amount);
-                rbTokens.Add(newRCToken);
+                receiptBoxValue = reservecoinValueInbase - txFee - devFee;
+                if (receiptBoxValue < Parameters.MIN_BOX_VALUE) receiptBoxValue = Parameters.MIN_BOX_VALUE;
+            }
+            else
+            {
+                receiptBoxValue = Parameters.MIN_BOX_VALUE;
+                outputTokens.Add(new TokenAmount<long> { tokenId = info.baseTokenId, amount = reservecoinValueInbase - devFee });
             }
 
             //Create the candidate
-            var candidate = new OutputBuilder(rbValue, userAddress)
-                .AddTokens(rbTokens);
+            var candidate = new OutputBuilder(receiptBoxValue, userAddress)
+                .AddTokens(outputTokens);
 
             return candidate;
         }

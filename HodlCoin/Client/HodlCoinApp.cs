@@ -132,7 +132,7 @@ namespace HodlCoin.Client
             // Create the Receipt box candidate
             var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
 
-            var devFeeBoxCandidate = HodlErgoFeeBox.CreateFeeBoxCandidate(devFee);
+            var devFeeBoxCandidate = HodlErgoFeeBox.CreateFeeBoxCandidate(info, devFee);
 
             var outputs = new List<OutputBuilder> {
                 outputBankCandidate,

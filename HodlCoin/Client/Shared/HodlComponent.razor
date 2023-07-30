@@ -126,7 +126,7 @@
 
         await UpateUIValues();//also gets latest bank box
 
-        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
+        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, hodlToken.decimals));
 
         //fetch latest box..
         //if (amount > 0) await UpateUIValues();
@@ -145,7 +145,7 @@
 
         await UpateUIValues();//also gets latest bank box
 
-        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, 9));
+        var amount = (long)(Convert.ToDecimal(newValue?.Replace(",", "."), CultureInfo.InvariantCulture) * (decimal)Math.Pow(10, hodlToken.decimals));
 
         //fetch latest box..
         //if (amount > 0) await UpateUIValues();
