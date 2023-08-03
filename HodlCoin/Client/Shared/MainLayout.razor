@@ -4,8 +4,9 @@
 @inject IJSRuntime JS
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @using FleetSharp.Types;
+@using HodlCoin.Client.Popups;
 
-<MudThemeProvider IsDarkMode=true />
+<MudThemeProvider IsDarkMode=true Theme="_currentTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -44,7 +45,9 @@
         </article>
 
         <div class="bottom-row px-4" style="text-align: right;">
-            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-frontend/" Target="_blank">User Interface</MudChip>
+            <MudChip Icon="@Icons.Material.Filled.StickyNote2" Label="true" Variant="Variant.Outlined" OnClick="ShowKYA">Know Your Assumptions</MudChip>
+            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/PhoenixErgo/phoenix-hodlcoin-contracts" Target="_blank">Phoenix hodlCoin contracts</MudChip>
+            <MudChip Icon="@Icons.Custom.Brands.GitHub" Label="true" Variant="Variant.Outlined" Href="https://github.com/pulsarz/hodlcoin-frontend" Target="_blank">User Interface</MudChip>
         </div>
     </main>
 </div>
@@ -55,13 +58,35 @@
 
     EventCallback updateWalletInfo => EventCallback.Factory.Create(this, SetUIbasedOnWalletStatus);
 
+    private readonly MudTheme _currentTheme = new()
+        {
+            PaletteDark = new PaletteDark
+            {
+                Primary = "#FB8C00",
+                Secondary = "#607D8B",
+                Info = "#a4c2dd",
+                Success = "#2ECC40",
+                Warning = "#dc2d7e",
+                Error = "#de2000",
+                AppbarBackground = "#121212",
+                TextPrimary = "#E0E0E0",
+                TextSecondary = "#BDBDBD",
+                // more color properties
+            }
+        };
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             //already called in updateui in component
-           // _= SetUIbasedOnWalletStatus();
+            // _= SetUIbasedOnWalletStatus();
         }
+    }
+
+    private async Task ShowKYA()
+    {
+        var dialog = await DialogService.ShowAsync<KYAPopup>("Know Your Assumptions");
     }
 
     private async Task SetUIbasedOnWalletStatus()
@@ -100,8 +125,14 @@
 
     private async void ConnectWallet()
     {
-        await Wallet.ConnectWallet(JS, localStorage);
-        await SetUIbasedOnWalletStatus();
+        var dialog = await DialogService.ShowAsync<WalletConnectPopup>("Select a wallet");
+        var ret = await dialog.Result;
+
+        if (!ret.Canceled)
+        {
+            await Wallet.ConnectWallet(JS, localStorage, (string)ret.Data);
+            await SetUIbasedOnWalletStatus();
+        }
     }
 
     private async void DisconnectWallet()
