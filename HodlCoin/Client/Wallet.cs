@@ -25,18 +25,18 @@ namespace HodlCoin.Client
             var connectedWallet = await localStorage.GetItemAsync<string>("connectedWallet");
             if (connectedWallet != null && connectedWallet != "")
             {
-                await ConnectWallet(JS, localStorage);
+                await ConnectWallet(JS, localStorage, connectedWallet);
                 return await JS.InvokeAsync<bool>("isWalletConnected");
             }
             return false;
         }
 
-        public static async Task<bool> ConnectWallet(IJSRuntime JS, ILocalStorageService localStorage)
+        public static async Task<bool> ConnectWallet(IJSRuntime JS, ILocalStorageService localStorage, string wallet)
         {
             var ret = await JS.InvokeAsync<bool>("connectWallet");
             if (ret)
             {
-                await localStorage.SetItemAsync("connectedWallet", "nautilus");
+                await localStorage.SetItemAsync("connectedWallet", wallet);
             }
             return ret;
         }

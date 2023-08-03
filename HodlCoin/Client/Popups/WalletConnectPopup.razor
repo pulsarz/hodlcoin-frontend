@@ -1,0 +1,16 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudContainer>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Style="text-align: center; width: 200px;" OnClick="UseNautilus">Nautilus Wallet</MudButton>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void UseNautilus() => MudDialog.Close(DialogResult.Ok("nautilus"));
+
+}

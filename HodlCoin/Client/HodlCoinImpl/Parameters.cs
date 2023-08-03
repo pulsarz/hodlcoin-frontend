@@ -25,21 +25,21 @@ namespace HodlCoin.Client.HodlCoinImpl
     }
 	public class Parameters
 	{
-		public const Network NETWORK = Network.Testnet;
+		public const Network NETWORK = Network.Mainnet;
 
-        public const long MIN_BOX_VALUE = 1000000L;//0.001 ERG
+        public const long MIN_BOX_VALUE = 1_000_000L;//0.001 ERG
 
 		//ToDo: Change to mainnet!
-        public static ErgoAddress DEV_FEE_ADDRESS = ErgoAddress.fromBase58("3m1wJ88xGVWx79p9oenKvCTwXp4o4J6n7KnbF9N3uRcmvtH1MAegmuBxsmB7kfjYTie2Rpp6He9kh3XJBNwwqr5HUiPsD1jLQcJ15kYneii6JN8UfSPcHb6mZA8k3PB7pcQUFox416Tv6AmrReVtVHaP1VGxfvM7WRNEbJDbu8wU7fwkRyqxPBbJXTcUMogpg9XVstiQHPmndzqbdREUSNVY5iuV68GYaYc7YuBqhax8oVLxWPCWGoaZEevPtsEnxXTKvR94H6KfPW1xwRFztZMpwzyv9PNVSqmXXCqhe8ryb3RkSEsk59CBcEMoNxkEA2zi3BMWV65U3h5PHa1d1X1ePS7fBaPTHRa5roSs6AhEdUK1tPjun7N1Jqo88SbGeWrY4hbNjCVGjAcx9ZC9vfE4sZdUtyCQyguzEwYdfdb6Xgn9YaKwC3LeR9Q2jDPt3wEtLrPdpAhCpn8b9MzaH79fdM7pnxxMj7NqdrFJUZ8Aqq3eb4CrBj4y8eUztPuuBMA7kdJ4GHLy8t4aPSUhkSPVdFcTGTbvv4e83UMZdEAL1GeqA3CJjTYRiiK3kKsphdXuxwmZHPPBAqSnm3H2nnAbb");
+        public static ErgoAddress DEV_FEE_ADDRESS = ErgoAddress.fromBase58("mCbJgVdTUoKiLn8a8Xucgvj45icZtV2uC85276wHVJQGtRhWzVAFiRDjJohyFDV81nShLn5Afc33mnV9mZUTkVty1zRPPRcXWRjhouRpxor7kMycsv8WSrbbP4p9oxsrsdoc6GQaoddfGexyzyPoQmgxNV1B9WQm4Ec5DTvEceHeV69mvqHGxB7cgps7eCvp2wLfhLm4DDuoteC6igiiHTtVhcG6SesqycQfnH7HACfjZLDsqAHtxCG3XzoGBpz6TjHTCXEmYEN3FiTd4AVskFaV31z5Re69ArUTxMoWPjP6dXZb3LBXtti3RUBeXLSAyTCbJktxU6irjjobTgz4jrjFr9QPnBnFENUesLpF4RYyXsR4t3awPZgXLbHFvCT8t8bcpnrP92Nue1wVCthaWRmCaJyRZddZDZLwAzSVutgaANNzr795EzVhv1kRTPgrae25VFZfdnVwvAiL1g67pJFc74etaEFGUQ26aotehPH6Y9hMreHiUDFRepGZiWRgsdpgoGnRdv4yR6GvePRWEymWCfsy1cNRhmqz4XbJPAaNuEoPkGbBTfvCFdjhfh9tczf4tkuRdhNLBePSbq9vntwFrek2Sy62D7MUfwK4GqwDkFDyYUNsgVKjC7z3nLQAdAU72ChhAXMqKLrxhvp2VaUmZj8jYdbXLUaH3Q7uJC65EHcMau");
 
 		public static List<HodlTokenInfo> tokens = new List<HodlTokenInfo>()
 		{
 			{
 				new HodlTokenInfo {
-					name = "hodlERG",
+					name = "hodlERG3",
 					description = "hodlERG 3%",
-					bankNFTTokenId = "142a10ec641cfa67828f93dff63291d51236458263de22f136f3e786871d97df",
-					tokenId = "3035f1ffd385adc4a8869755b20bde61d1031398e7780145437c9eb68a1469e9",
+					bankNFTTokenId = "6e9c85c4be018b1308ddf034baf1406490e2a9dd406c01591bd6df41e98b6057",
+					tokenId = "cbd75cfe1a4f37f9a22eaee516300e36ea82017073036f07a09c1d2e10277cda",
 					decimals = 9,
 					feeDenom = 1000L,
 					baseTokenName = "ERG",

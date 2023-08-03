@@ -4,6 +4,7 @@
 @using FleetSharp.Builder;
 @using FleetSharp.Types;
 @using HodlCoin.Client.HodlCoinImpl;
+@using HodlCoin.Client.Popups;
 @using MudExtensions.Enums
 @using System.Globalization;
 @inject IJSRuntime JS
@@ -34,8 +35,23 @@
     HodlTokenInfo test = HodlCoinImpl.Parameters.tokens.First();
     protected override async Task OnInitializedAsync()
     {
-        
+        await CheckKYA();
     }
 
+    private async Task CheckKYA()
+    {
+        var kyaDone = await localStorage.GetItemAsync<bool>("kyaDone");
+        if (kyaDone != true)
+        {
+            var options = new DialogOptions { DisableBackdropClick = true };
+            var dialog = await DialogService.ShowAsync<KYAPopup>("Know Your Assumptions", options);
+            var ret = await dialog.Result;
+
+            if ((bool)ret.Data == true)
+            {
+                await localStorage.SetItemAsync("kyaDone", true);
+            }
+        }
+    }
 }
 

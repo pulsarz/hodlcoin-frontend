@@ -106,8 +106,6 @@
     decimal? MintHodlCoinAmount { get; set; } = 0;
     decimal? RedeemHodlCoinAmount { get; set; } = 0;
 
-    [Inject] private IDialogService DialogService { get; set; }
-
     //https://stackoverflow.com/questions/69093180/blazor-how-to-stop-a-timer-when-exiting-page
     public void Dispose()
     {
@@ -166,16 +164,16 @@
                 SetFunc = value => (value.HasValue && value != 0M) ? value.Value.ToString($"0.{new string('0', hodlToken.baseTokenDecimals)}") : string.Empty,
                 GetFunc = text => string.IsNullOrWhiteSpace(text) ? (decimal?)null : Convert.ToDecimal(text.Replace(",", "."), CultureInfo.InvariantCulture),
             };
-        
+
         //Auto refresh dashboard
         /*if (timer == null && AutoRefreshInterval > 0)
-        {
-            timer = new Timer(new TimerCallback(_ =>
             {
-                InvokeAsync(async () =>
+            timer = new Timer(new TimerCallback(_ =>
                 {
+                InvokeAsync(async () =>
+                    {
                     await UpateUIValues();
-                });
+            });
             }), null, AutoRefreshInterval, AutoRefreshInterval);
         }*/
 
@@ -218,7 +216,8 @@
 
             CurrentCirculatingSupply = $"{String.Format("{0:#,0.#}", latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, hodlToken.decimals))} {hodlToken.name}";
 
-            CurrentTVL = $"{String.Format("{0:#,0.#}", latestBankBox.BaseReserves() / Math.Pow(10, hodlToken.baseTokenDecimals))} {hodlToken.baseTokenName}";
+            var tvl = latestBankBox.BaseReserves() / Math.Pow(10, hodlToken.baseTokenDecimals);
+            CurrentTVL = $"{tvl.ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.baseTokenName}";
         }
         catch (Exception e)
         {
