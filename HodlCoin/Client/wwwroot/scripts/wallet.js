@@ -238,13 +238,15 @@ async function processTx(txToBeProcessedSerialized) {
         const msg = s => {
             console.log('[processTx]', s);
         };
-        const signedTx = await signTx(txToBeProcessed);
+        console.log("signTx", txToBeProcessed);
+        const signedTx = await ergo.sign_tx(txToBeProcessed);
         if (!signedTx) {
             console.error(`No signed transaction found`);
             return null;
         }
         msg("Transaction signed - awaiting submission");
-        const txId = await submitTx(signedTx);
+        console.log("submitTx");
+        const txId = await promiseTimeout(30000, ergo.submit_tx(signedTx));
         //const txId = await postTxMempool(signedTx);
         if (!txId) {
             console.log(`No submitted tx ID`);

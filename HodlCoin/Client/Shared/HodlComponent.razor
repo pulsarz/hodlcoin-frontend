@@ -311,15 +311,25 @@
 
                     if (tx != null)
                     {
-                        _loadingText = "Signing transaction...";
-                        StateHasChanged();
 
-                        var signedTx = await Wallet.SignTX(JS, tx);
-                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+                        var connectedWallet = await localStorage.GetItemAsync<string>("connectedWallet");
+                        if (connectedWallet == "safew")
+                        {
+                            _loadingText = "Signing and submitting transaction...";
+                            StateHasChanged();
+                            transactionId = await Wallet.ProcessTX(JS, tx);
+                        }
+                        else
+                        {
+                            var signedTx = await Wallet.SignTX(JS, tx);
+                            Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
 
-                        _loadingText = "Submitting transaction...";
-                        StateHasChanged();
-                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                            _loadingText = "Submitting transaction...";
+                            StateHasChanged();
+                            transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        }
+
+
                         Console.WriteLine($"transactionId: {transactionId}");
                     }
                 }
@@ -439,12 +449,24 @@
                         _loadingText = "Signing transaction...";
                         StateHasChanged();
 
-                        var signedTx = await Wallet.SignTX(JS, tx);
-                        Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+                        var connectedWallet = await localStorage.GetItemAsync<string>("connectedWallet");
 
-                        _loadingText = "Submitting transaction...";
-                        StateHasChanged();
-                        transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        if (connectedWallet == "safew")
+                        {
+                            _loadingText = "Signing and submitting transaction...";
+                            StateHasChanged();
+                            transactionId = await Wallet.ProcessTX(JS, tx);
+                        }
+                        else
+                        {
+                            var signedTx = await Wallet.SignTX(JS, tx);
+                            Console.WriteLine($"signedTx: {JsonSerializer.Serialize(signedTx)}");
+
+                            _loadingText = "Submitting transaction...";
+                            StateHasChanged();
+                            transactionId = await Wallet.SubmitTX(JS, signedTx);
+                        }
+
                         Console.WriteLine($"transactionId: {transactionId}");
                     }
                 }
