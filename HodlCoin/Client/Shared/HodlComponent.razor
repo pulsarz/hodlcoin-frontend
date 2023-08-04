@@ -14,11 +14,11 @@
     <MudLoading @bind-Loading="_loading" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
         <MudLoading @bind-Loading="_loadingStats" Overlap=true LoaderType=LoaderType.Circular Darken=true Text="@_loadingText" ClassText="white-text">
             <MudGrid Justify="Justify.Center" Style="align-items: center;">
-                <MudItem xs="12" sm="6" lg="4" Class="gap-4 align-center">
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
                     <MudCard>
                         <MudCardContent>
                             <MudText Align="Align.Center">Current price</MudText>
-                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentPrice</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h5">@CurrentPrice</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -30,19 +30,28 @@
                         </MudCardContent>
                     </MudCard>
                 </MudItem>*@
-                <MudItem xs="12" sm="6" lg="4" Class="gap-4 align-center">
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
                     <MudCard>
                         <MudCardContent>
                             <MudText Align="Align.Center">Emission amount</MudText>
-                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentCirculatingSupply</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h5">@CurrentCirculatingSupply</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
-                <MudItem xs="12" sm="6" lg="4" Class="gap-4 align-center">
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
                     <MudCard>
                         <MudCardContent>
                             <MudText Align="Align.Center">TVL</MudText>
-                            <MudText Align="Align.Center" Typo="Typo.h4">@CurrentTVL</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h5">@CurrentTVL</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Align="Align.Center">Total protocol fees collected</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h5">@TotalProtocolFeesEarned</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -99,6 +108,7 @@
     string CurrentRatio = "";
     string CurrentCirculatingSupply = "";
     string CurrentTVL = "";
+    string TotalProtocolFeesEarned = "";
 
     string MintHodlCoinWorth = "";
     string RedeemHodlCoinWorth = "";
@@ -212,13 +222,16 @@
 
             decimal price = latestBankBox.BaseCostToMintReserveCoin((long)Math.Pow(10, hodlToken.decimals)) / (decimal)Math.Pow(10, hodlToken.baseTokenDecimals);
             CurrentPrice = $"{price.ToString()} {hodlToken.baseTokenName}";
-            CurrentRatio = $"1 {hodlToken.baseTokenName} ≈ {(latestBankBox.BaseAmountToReserveCoinAmount((long)Math.Pow(10, hodlToken.baseTokenDecimals)) / Math.Pow(10, hodlToken.decimals)).ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.name}";
+            //CurrentRatio = $"1 {hodlToken.baseTokenName} ≈ {(latestBankBox.BaseAmountToReserveCoinAmount((long)Math.Pow(10, hodlToken.baseTokenDecimals)) / (decimal)Math.Pow(10, hodlToken.decimals)).ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.name}";
 
-            var emissionAmt = latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, hodlToken.decimals);
+            decimal emissionAmt = latestBankBox.NumCirculatingReserveCoins() / (decimal)Math.Pow(10, hodlToken.decimals);
             CurrentCirculatingSupply = $"{emissionAmt.ToString()} {hodlToken.name}";
 
-            var tvl = latestBankBox.BaseReserves() / Math.Pow(10, hodlToken.baseTokenDecimals);
+            decimal tvl = latestBankBox.BaseReserves() / (decimal)Math.Pow(10, hodlToken.baseTokenDecimals);
             CurrentTVL = $"{tvl.ToString()} {hodlToken.baseTokenName}";
+
+            decimal feesEarned = tvl - emissionAmt;
+            TotalProtocolFeesEarned = $"{feesEarned.ToString()} {hodlToken.baseTokenName}";
         }
         catch (Exception e)
         {
