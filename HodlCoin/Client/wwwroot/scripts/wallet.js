@@ -14,8 +14,10 @@
 }
 
 function hasExtensionConnector() {
-    if (typeof window.ergoConnector.nautilus.isConnected !== 'undefined') {
+    if ((typeof window.ergoConnector.nautilus !== 'undefined') && (typeof window.ergoConnector.nautilus.isConnected !== 'undefined')) {
         return true;
+    } else if ((typeof window.ergoConnector.safew !== 'undefined') && (typeof window.ergoConnector.safew.isConnected !== 'undefined')) {
+            return true;
     } else {
         return false;
     }
@@ -29,11 +31,18 @@ function hasConnectorInjected() {
     }
 }
 
-async function isWalletConnected() {
+async function isWalletConnected(wallet) {
     if (hasExtensionConnector()) {
         try {
-            const res = await ergoConnector.nautilus.isConnected();
-            return Promise.resolve(res);
+            if (wallet == "safew" && (typeof window.ergoConnector.safew !== 'undefined') && (typeof window.ergoConnector.safew.isConnected !== 'undefined')) {
+                const res = await ergoConnector.safew.isConnected();
+                return Promise.resolve(res);
+            }
+            else {
+                const res = await ergoConnector.nautilus.isConnected();
+                return Promise.resolve(res);
+            }
+            
         } catch (e) {
             console.error("isWalletConnected error", e);
             //errorAlert("dApp connector not found 1", "Install Nautilus or SAFEW wallet in your browser");
@@ -45,14 +54,21 @@ async function isWalletConnected() {
 }
 
 // Connect to browser extension wallet, return True if success
-async function connectWallet() {
+async function connectWallet(wallet) {
     if (hasExtensionConnector()) {
         try {
             const alreadyConnected = await isWalletConnected();
             //console.log("connectWallet alreadyConnected", alreadyConnected);
             if (!alreadyConnected) {
                 await sleep(100)
-                const res = await window.ergoConnector.nautilus.connect();
+                var res = false;
+                if (wallet == "safew" && (typeof window.ergoConnector.safew !== 'undefined') && (typeof window.ergoConnector.safew.isConnected !== 'undefined')) {
+                    res = await window.ergoConnector.safew.connect();
+                }
+                else {
+                    res = await window.ergoConnector.nautilus.connect();
+                }
+
                 await sleep(100); // need to fix SAFEW to remove this wait...
                 if (res) {
                     const currentAddress = localStorage.getItem('address') ?? '';
@@ -76,10 +92,10 @@ async function connectWallet() {
 
 }
 
-async function disconnectWallet() {
+async function disconnectWallet(wallet) {
     //console.log("disconnectWallet");
     if (typeof window.ergoConnector !== 'undefined') {
-        if (typeof window.ergoConnector.safew !== 'undefined') {
+        if (wallet == "safew" && typeof window.ergoConnector.safew !== 'undefined') {
             return await window.ergoConnector.safew.disconnect();
         }
         if (typeof window.ergoConnector.nautilus !== 'undefined') {
@@ -181,7 +197,7 @@ async function getChangeAddress() {
         return null;
     }
 }
-
+/*Does not work with safew*/
 async function getCurrentHeight() {
     try {
         console.log("getCurrentHeight");

@@ -176,14 +176,14 @@
 
         //Auto refresh dashboard
         if (timer == null && AutoRefreshInterval > 0)
-            {
+        {
             timer = new Timer(new TimerCallback(_ =>
                 {
-                InvokeAsync(async () =>
+                    InvokeAsync(async () =>
                     {
-                    await UpateUIValues();
-            });
-            }), null, AutoRefreshInterval, AutoRefreshInterval);
+                        await UpateUIValues();
+                    });
+                }), null, AutoRefreshInterval, AutoRefreshInterval);
         }
 
         await UpateUIValues();
@@ -276,12 +276,12 @@
 
                 _loadingText = "Retrieving wallet unspent UTXO's...";
                 StateHasChanged();
-                var allUTXOs = await Wallet.GetUtxos(JS);
+                var allUTXOs = await Wallet.GetUtxos(JS, localStorage);
                 //Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
 
                 _loadingText = "Retrieving current height...";
                 StateHasChanged();
-                var height = await Wallet.GetCurrentHeight(JS);
+                var height = await Config.node.GetCurrentHeight();
                 Console.WriteLine($"Current height: {height}");
 
                 if (allUTXOs != null && allUTXOs.Count > 0)
@@ -400,12 +400,12 @@
 
                 _loadingText = "Retrieving wallet unspent UTXO's...";
                 StateHasChanged();
-                var allUTXOs = await Wallet.GetUtxos(JS);
+                var allUTXOs = await Wallet.GetUtxos(JS, localStorage);
                 Console.WriteLine($"UTXOs: {JsonSerializer.Serialize(allUTXOs)}");
 
                 _loadingText = "Retrieving current height...";
                 StateHasChanged();
-                var height = await Wallet.GetCurrentHeight(JS);
+                var height = await Config.node.GetCurrentHeight();
                 Console.WriteLine($"Current height: {height}");
 
                 if (allUTXOs != null && allUTXOs.Count > 0)
