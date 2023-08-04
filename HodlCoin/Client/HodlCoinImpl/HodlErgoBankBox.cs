@@ -72,10 +72,10 @@ namespace HodlCoin.Client.HodlCoinImpl
 		}
 
         /// Current ReserveCoin nominal price with precise factor of PRECISE_FACTOR
-        public long ReserveCoinNominalPrice()
+        public BigInteger ReserveCoinNominalPrice()
 		{
 			if (NumCirculatingReserveCoins() <= 0) return _precisionFactor;
-            return (long)((BigInteger)BaseReserves() * _precisionFactor / NumCirculatingReserveCoins());
+            return ((BigInteger)BaseReserves() * _precisionFactor / NumCirculatingReserveCoins());
 		}
 
 		/// The total amount of nanoErgs which is needed to cover minting
@@ -83,7 +83,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 		/// fee, etc.
 		public long BaseCostToMintReserveCoin(long amountToMint)
 		{
-			long feelessCost = ((ReserveCoinNominalPrice() * amountToMint) / _precisionFactor);
+			long feelessCost = (long)((ReserveCoinNominalPrice() * amountToMint) / _precisionFactor);
 			var protocolFee = 0;
 			return feelessCost + protocolFee;
 		}
@@ -105,7 +105,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 
         public long BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(long amountToRedeem)
         {
-            var feelessAmount = ((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
+            var feelessAmount = (long)((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
 
             return feelessAmount;
         }
@@ -158,7 +158,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 
 		public long FeesFromRedeemingReserveCoin(long amountToRedeem, long txFee)
 		{
-			var feelessAmount = ((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
+			var feelessAmount = (long)((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
 			var protocolFee = feelessAmount * _bankFeeNum / _info.feeDenom;
             var devFee = CalculateDevFee(BaseAmountFromRedeemingReserveCoin(amountToRedeem));
 
