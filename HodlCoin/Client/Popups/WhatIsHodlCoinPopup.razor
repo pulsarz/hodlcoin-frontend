@@ -1,0 +1,28 @@
+﻿<MudDialog>
+    <DialogContent>
+        
+        <MudText>
+            The hodlCoin game is a competitive zero-sum massively multiplayer financial game where the goal is to hodl an asset for long periods of time.
+        </MudText>
+        <MudText Class="mt-4">
+            By hodling, a player deposits coins of a given asset in a common reserve and receives a proportional amount of hodlCoins.
+        </MudText>
+        <MudText Class="mt-4">
+            Players who un-hodl pay a fee that is accumulated in the common reserve. Thus, the longer a player hodls, in comparison with other players, the more the player will benefit from fees paid by the players who are un-hodling earlier.
+        </MudText>
+        <MudText Class="mt-4">
+            Surprisingly, thanks to the accumulation of fees, the price of hodlCoins in comparison with the underlying asset never decreases!
+        </MudText>
+        <MudText Class="mt-4">
+            To know more, watch the <MudLink Href="https://www.youtube.com/watch?v=D7L7h7EOIow" Target="_blank">explanation video</MudLink>.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Close() => MudDialog.Close(DialogResult.Ok(true));
+
+}
