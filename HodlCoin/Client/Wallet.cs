@@ -164,7 +164,6 @@ namespace HodlCoin.Client
 			//serialize object ourselves otherwise the casing is changed.. lmao good design choice MS.
 			return await JS.InvokeAsync<string?>("submitTx", JsonSerializer.Serialize(signedTX, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }));
         }
-
         public static async Task<string?> ProcessTX(IJSRuntime JS, EIP12UnsignedTransaction unsignedTX)
         {
 			//serialize object ourselves otherwise the casing is changed.. lmao good design choice MS.
