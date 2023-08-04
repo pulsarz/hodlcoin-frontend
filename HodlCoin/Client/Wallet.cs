@@ -18,7 +18,27 @@ namespace HodlCoin.Client
 		public long size { get; set; }
 	}
 
-	public class Wallet
+    public class SafewTokenAmount<AmountType>
+    {
+        public string tokenId { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public AmountType amount { get; set; }
+    }
+
+    public class SafewBox<AmountType>
+    {
+        public string boxId { get; set; }
+        public string transactionId { get; set; }
+        public int index { get; set; }
+        public string ergoTree { get; set; }
+        public long creationHeight { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public AmountType value { get; set; }
+        public List<SafewTokenAmount<AmountType>> assets { get; set; }
+        public NonMandatoryRegisters additionalRegisters { get; set; }
+    }
+
+    public class Wallet
     {
         public static async Task<bool> IsWalletConnected(IJSRuntime JS, ILocalStorageService localStorage)
         {
@@ -26,14 +46,14 @@ namespace HodlCoin.Client
             if (connectedWallet != null && connectedWallet != "")
             {
                 await ConnectWallet(JS, localStorage, connectedWallet);
-                return await JS.InvokeAsync<bool>("isWalletConnected");
+                return await JS.InvokeAsync<bool>("isWalletConnected", connectedWallet);
             }
             return false;
         }
 
         public static async Task<bool> ConnectWallet(IJSRuntime JS, ILocalStorageService localStorage, string wallet)
         {
-            var ret = await JS.InvokeAsync<bool>("connectWallet");
+            var ret = await JS.InvokeAsync<bool>("connectWallet", wallet);
             if (ret)
             {
                 await localStorage.SetItemAsync("connectedWallet", wallet);
@@ -43,7 +63,9 @@ namespace HodlCoin.Client
 
         public static async Task<bool> DisconnectWallet(IJSRuntime JS, ILocalStorageService localStorage)
         {
-            var ret = await JS.InvokeAsync<bool>("disconnectWallet");
+            var connectedWallet = await localStorage.GetItemAsync<string>("connectedWallet");
+
+            var ret = await JS.InvokeAsync<bool>("disconnectWallet", connectedWallet);
             if (ret) await localStorage.RemoveItemAsync("connectedWallet");
             return ret;
         }
@@ -73,24 +95,62 @@ namespace HodlCoin.Client
 			return await JS.InvokeAsync<int>("getCurrentHeight");
 		}
 
-		public static async Task<List<Box<long>>?> GetUtxos(IJSRuntime JS, long? amount = null, string? tokenId = null)
+        public static async Task<List<Box<long>>?> GetUtxos(IJSRuntime JS, ILocalStorageService localStorage, long? amount = null, string? tokenId = null)
 		{
             string? amountStr = null;
             if (amount != null) amountStr = amount.ToString();
+            var connectedWallet = await localStorage.GetItemAsync<string>("connectedWallet");
 
-			var ret = await JS.InvokeAsync<List<Box<string>>?>("getUtxos", amount, tokenId);
-            if (ret == null) return null;
-            return ret.Select(x => new Box<long>
+            if (connectedWallet == "safew")
             {
-                boxId = x.boxId,
-                additionalRegisters = x.additionalRegisters,
-                creationHeight = x.creationHeight,
-                ergoTree = x.ergoTree,
-                index = x.index,
-                transactionId = x.transactionId,
-                value = long.Parse(x.value),
-                assets = x.assets.Select(y => new TokenAmount<long> { tokenId = y.tokenId, amount = long.Parse(y.amount) }).ToList()
-			}).ToList();
+                try
+                {
+                    var ret = await JS.InvokeAsync<List<SafewBox<long>>?>("getUtxos", amount, tokenId);
+                    Console.WriteLine(JsonSerializer.Serialize(ret));
+
+                    return ret.Select(x => new Box<long>
+                    {
+                        boxId = x.boxId,
+                        additionalRegisters = x.additionalRegisters,
+                        creationHeight = x.creationHeight,
+                        ergoTree = x.ergoTree,
+                        index = x.index,
+                        transactionId = x.transactionId,
+                        value = x.value,
+                        assets = x.assets.Select(y => new TokenAmount<long> { tokenId = y.tokenId, amount = y.amount }).ToList()
+                    }).ToList();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    return null;
+                }
+            }
+            else
+            {
+                try
+                {
+                    var ret = await JS.InvokeAsync<List<Box<string>>?>("getUtxos", amount, tokenId);
+                    if (ret == null) return null;
+
+                    return ret.Select(x => new Box<long>
+                    {
+                        boxId = x.boxId,
+                        additionalRegisters = x.additionalRegisters,
+                        creationHeight = x.creationHeight,
+                        ergoTree = x.ergoTree,
+                        index = x.index,
+                        transactionId = x.transactionId,
+                        value = long.Parse(x.value),
+                        assets = x.assets.Select(y => new TokenAmount<long> { tokenId = y.tokenId, amount = long.Parse(y.amount) }).ToList()
+                    }).ToList();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    return null;
+                }
+            }
 		}
 
 		public static async Task<SignedTransactionString> SignTX(IJSRuntime JS, EIP12UnsignedTransaction unsignedTX)
