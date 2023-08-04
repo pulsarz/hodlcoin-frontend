@@ -10,6 +10,6 @@ namespace HodlCoin.Client
 
         public static string ExplorerURL = "https://explorer.ergoplatform.com";
 
-        public const long DEFAULT_TX_FEE = 2_500_000L;//0.0025 ERG
+        public const long DEFAULT_TX_FEE = 1_500_000L;//0.0015 ERG
     }
 }
