@@ -175,7 +175,7 @@
             };
 
         //Auto refresh dashboard
-        /*if (timer == null && AutoRefreshInterval > 0)
+        if (timer == null && AutoRefreshInterval > 0)
             {
             timer = new Timer(new TimerCallback(_ =>
                 {
@@ -184,7 +184,7 @@
                     await UpateUIValues();
             });
             }), null, AutoRefreshInterval, AutoRefreshInterval);
-        }*/
+        }
 
         await UpateUIValues();
     }
