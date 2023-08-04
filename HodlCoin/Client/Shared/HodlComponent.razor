@@ -211,13 +211,14 @@
             }
 
             decimal price = latestBankBox.BaseCostToMintReserveCoin((long)Math.Pow(10, hodlToken.decimals)) / (decimal)Math.Pow(10, hodlToken.baseTokenDecimals);
-            CurrentPrice = $"{price.ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.baseTokenName}";
+            CurrentPrice = $"{price.ToString()} {hodlToken.baseTokenName}";
             CurrentRatio = $"1 {hodlToken.baseTokenName} ≈ {(latestBankBox.BaseAmountToReserveCoinAmount((long)Math.Pow(10, hodlToken.baseTokenDecimals)) / Math.Pow(10, hodlToken.decimals)).ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.name}";
 
-            CurrentCirculatingSupply = $"{String.Format("{0:#,0.#}", latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, hodlToken.decimals))} {hodlToken.name}";
+            var emissionAmt = latestBankBox.NumCirculatingReserveCoins() / Math.Pow(10, hodlToken.decimals);
+            CurrentCirculatingSupply = $"{emissionAmt.ToString()} {hodlToken.name}";
 
             var tvl = latestBankBox.BaseReserves() / Math.Pow(10, hodlToken.baseTokenDecimals);
-            CurrentTVL = $"{tvl.ToString($"0.{hodlToken.precisionFactor.ToString().Substring(1)}")} {hodlToken.baseTokenName}";
+            CurrentTVL = $"{tvl.ToString()} {hodlToken.baseTokenName}";
         }
         catch (Exception e)
         {
