@@ -45,6 +45,7 @@
         </article>
 
         <div class="bottom-row px-4" style="text-align: right;">
+            <MudChip Icon="@Icons.Material.Filled.Info" Label="true" Variant="Variant.Outlined" OnClick="ShowWhatIsHodlCoin">What is hodlCoin?</MudChip>
             <MudChip Icon="@Icons.Material.Filled.StickyNote2" Label="true" Variant="Variant.Outlined" OnClick="ShowKYA">Know Your Assumptions</MudChip>
             <MudChip Icon="@Icons.Material.Filled.Newspaper" Label="true" Variant="Variant.Outlined" Href="https://eprint.iacr.org/2023/1029" Target="_blank">hodlCoin Paper</MudChip>
             <MudChip Icon="@Icons.Custom.Brands.Telegram" Label="true" Variant="Variant.Outlined" Href="https://t.me/hodlCoinGame" Target="_blank">Telegram</MudChip>
@@ -89,6 +90,11 @@
     private async Task ShowKYA()
     {
         var dialog = await DialogService.ShowAsync<KYAPopup>("Know Your Assumptions");
+    }
+
+    private async Task ShowWhatIsHodlCoin()
+    {
+        var dialog = await DialogService.ShowAsync<WhatIsHodlCoinPopup>("What is hodlCoin?", new DialogOptions { CloseButton = true, CloseOnEscapeKey = true });
     }
 
     private async Task SetUIbasedOnWalletStatus()
