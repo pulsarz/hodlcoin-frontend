@@ -50,8 +50,8 @@
                 <MudItem xs="12" sm="6" lg="3" Class="gap-4 align-center">
                     <MudCard>
                         <MudCardContent>
-                            <MudText Align="Align.Center">Total protocol fees collected</MudText>
-                            <MudText Align="Align.Center" Typo="Typo.h5">@TotalProtocolFeesEarned</MudText>
+                            <MudText Align="Align.Center">All-time annualized price appreciation</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.h5">@CurrentAPA</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -108,7 +108,7 @@
     string CurrentRatio = "";
     string CurrentCirculatingSupply = "";
     string CurrentTVL = "";
-    string TotalProtocolFeesEarned = "";
+    string CurrentAPA = "";
 
     string MintHodlCoinWorth = "";
     string RedeemHodlCoinWorth = "";
@@ -230,8 +230,9 @@
             decimal tvl = latestBankBox.BaseReserves() / (decimal)Math.Pow(10, hodlToken.baseTokenDecimals);
             CurrentTVL = $"{tvl.ToString()} {hodlToken.baseTokenName}";
 
-            decimal feesEarned = tvl - emissionAmt;
-            TotalProtocolFeesEarned = $"{feesEarned.ToString()} {hodlToken.baseTokenName}";
+            var daysLive = (DateTime.UtcNow - hodlToken.launchedOnUTC).TotalDays;
+            var APA = Math.Pow((double)price, (365.0 / daysLive)) - 1;
+            CurrentAPA = $"{Math.Round(APA*100, 2).ToString()}%";
         }
         catch (Exception e)
         {
