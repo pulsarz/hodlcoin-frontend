@@ -21,6 +21,7 @@ namespace HodlCoin.Client.HodlCoinImpl
         public string baseTokenName { get; set; }
         public string baseTokenId { get; set; }
         public int baseTokenDecimals { get; set; }
+		public DateTime launchedOnUTC { get; set; }
 
     }
 	public class Parameters
@@ -50,6 +51,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 					precisionFactor = 1000000L,
                     protocolFeePercentage = 3M,
                     devFeePercentage = 0.3M,
+                    launchedOnUTC = new DateTime(2023,8,3,23,48,59)//https://explorer.ergoplatform.com/en/transactions/d5314f5fd09aa57a476dfe765aa725816c4437166498dea7c82c6c5b44eabbc5
                 }
 			}
 
