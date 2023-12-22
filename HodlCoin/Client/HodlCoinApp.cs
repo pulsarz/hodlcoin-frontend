@@ -9,30 +9,11 @@ namespace HodlCoin.Client
 	public static class HodlCoinApp
 	{
         //Currently node is needed for mempool.
-        public static async Task<Box<long>?> GetLastHodlCoinBankBox(NodeInterface node, Explorer explorer, HodlTokenInfo info)
+        public static async Task<Box<long>?> GetLastHodlCoinBankBox(NodeInterface node, HodlTokenInfo info)
         {
-            //Check if any boxes exist in mempool.
-            var boxesInMempool = await node.GetBoxesFromMempoolByTokenId(info.bankNFTTokenId);
-
-            //GEt all txes from mempool for each such box because we need it to determine what the last unspent box is.
-            if (boxesInMempool != null && boxesInMempool.Count > 0)
-            {
-                Console.WriteLine($"Found {boxesInMempool.Count} bank boxes in mempool");
-                var txes = await Helpers.GetTXesFromMempool(node, boxesInMempool.Select(x => x.transactionId).ToList());
-
-                var outputBoxes = txes.SelectMany(x => x.outputs).ToList();
-                var inputBoxes = txes.SelectMany(x => x.inputs).ToList();
-
-                var unspentBox = outputBoxes.Where(y => y.assets.Exists(z => z.tokenId == info.bankNFTTokenId) && !inputBoxes.Exists(z => z.boxId == y.boxId)).FirstOrDefault();
-                if (unspentBox != null)
-                {
-                    Console.WriteLine($"Latest unspent box = {JsonSerializer.Serialize(unspentBox)}");
-                    return unspentBox;
-                }
-            }
-
-            var lastBox = (await explorer.GetUnspentBoxesByTokenId(info.bankNFTTokenId))?.FirstOrDefault();
-            Console.WriteLine($"Last unspent box from explorer = {JsonSerializer.Serialize(lastBox)}");
+            var unspentBoxesDesc = await node.GetUnspentBoxesByTokenId(info.bankNFTTokenId, offset: 0, limit: 1, sortDirection: "desc", includeUnconfirmed: true);
+            var lastBox = unspentBoxesDesc.FirstOrDefault();
+            Console.WriteLine($"Last unspent box from node = {JsonSerializer.Serialize(lastBox)}");
 
             return lastBox;
         }

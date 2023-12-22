@@ -207,7 +207,7 @@
                 _loadingText = "Loading data...";
                 StateHasChanged();
 
-                var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer, hodlToken);
+                var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, hodlToken);
                 if (bankBox == null)
                 {
                     await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
@@ -303,7 +303,7 @@
                     _loadingText = "Retrieving bank box...";
                     StateHasChanged();
 
-                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer, hodlToken);
+                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, hodlToken);
                     if (bankBox == null)
                     {
                         await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
@@ -437,7 +437,7 @@
                     _loadingText = "Retrieving bank box...";
                     StateHasChanged();
 
-                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, Config.explorer, hodlToken);
+                    var bankBox = await HodlCoinApp.GetLastHodlCoinBankBox(Config.node, hodlToken);
                     if (bankBox == null)
                     {
                         await DialogService.ShowMessageBox("Error", "Failed to retrieve latest bank box!");
