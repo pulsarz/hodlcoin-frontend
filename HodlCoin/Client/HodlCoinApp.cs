@@ -80,8 +80,7 @@ namespace HodlCoin.Client
             var reservecoinValueInBaseWithoutProtocolFee = bankBox.BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
             var reservecoinValueInBase = bankBox.BaseAmountFromRedeemingReserveCoin(amountToRedeem);
 
-            //in new contract revision, it is calculated on total amount before protocol fee
-            var devFee = bankBox.CalculateDevFee(reservecoinValueInBaseWithoutProtocolFee);
+            var fees = bankBox.CalculateDevAndBankFee(amountToRedeem);
 
             if (circulatingReservecoinsIn < amountToRedeem)
             {
@@ -111,9 +110,9 @@ namespace HodlCoin.Client
             var outputBankCandidate = bankBox.CreateRedeemReserveCoinCandidate(bankBox.GetBox(), amountToRedeem, circulatingReservecoinsOut, reservecoinValueInBase);
 
             // Create the Receipt box candidate
-            var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, devFee);
+            var receiptBoxCandidate = HodlErgoReceiptBox.CreateRedeemReserveCoinCandidate(info, bankBox.GetBox(), rcBoxes, amountToRedeem, userAddress, txFee, reservecoinValueInBase, fees.devFee);
 
-            var devFeeBoxCandidate = HodlErgoFeeBox.CreateFeeBoxCandidate(info, devFee);
+            var devFeeBoxCandidate = HodlErgoFeeBox.CreateFeeBoxCandidate(info, fees.devFee);
 
             var outputs = new List<OutputBuilder> {
                 outputBankCandidate,

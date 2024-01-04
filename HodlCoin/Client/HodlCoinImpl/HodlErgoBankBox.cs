@@ -88,10 +88,47 @@ namespace HodlCoin.Client.HodlCoinImpl
 			return feelessCost + protocolFee;
 		}
 
-		public long CalculateDevFee(long baseCost)
-		{
-            var devFee = (baseCost * _devFeeNum / _info.feeDenom);
-			return devFee;
+        public BigInteger DivUp(BigInteger dividend, BigInteger divisor)
+        {
+            if (divisor == 0)
+            {
+                return -1;
+            }
+            else
+            {
+                return (dividend + (divisor - 1)) / divisor;
+            }
+        }
+
+        public (long bankFee, long devFee) CalculateDevAndBankFee(long amountToRedeem)
+        {
+            var feelessAmount = BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
+
+            if (_info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
+            {
+                var bankFee = feelessAmount * _bankFeeNum / _info.feeDenom;
+                var devFee = (feelessAmount * _devFeeNum / _info.feeDenom);
+
+                return (bankFee, devFee);
+            }
+            else
+            {
+                var dividend_1 = (BigInteger)feelessAmount * ((BigInteger)_bankFeeNum + (BigInteger)_devFeeNum);
+                var divisor_1 = (BigInteger)_info.feeDenom;
+
+                var bankFeeAndDevFeeAmount = DivUp(dividend_1, divisor_1);
+
+                var dividend_2 = bankFeeAndDevFeeAmount * (BigInteger)_devFeeNum;
+                var divisor_2 = (BigInteger)_bankFeeNum + (BigInteger)_devFeeNum;
+
+                var devFee = DivUp(dividend_2, divisor_2);
+                var bankFee = bankFeeAndDevFeeAmount - devFee;
+
+                var devFeeAmountAdjusted = (bankFee == 0) ? 0L : devFee;
+                var bankFeeAmountAdjusted = (bankFee == 0) ? devFee : bankFee;
+
+                return ((long)bankFeeAmountAdjusted, (long)devFeeAmountAdjusted);
+            }
         }
 
 		/// The total amount of nanoErgs which is needed to cover minting
@@ -102,68 +139,29 @@ namespace HodlCoin.Client.HodlCoinImpl
 			var baseCost = BaseCostToMintReserveCoin(amountToMint);
             return (baseCost + txFee);
 		}
-
+        
         public long BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(long amountToRedeem)
         {
             var feelessAmount = (long)((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
 
             return feelessAmount;
         }
-
+        
         public long BaseAmountFromRedeemingReserveCoin(long amountToRedeem)
 		{
 			var feelessAmount = BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
-			var protocolFee = feelessAmount * _bankFeeNum / _info.feeDenom;
+            var fees = CalculateDevAndBankFee(amountToRedeem);
 
-			return (feelessAmount - protocolFee);
+			return (feelessAmount - fees.bankFee);
 		}
 
         public long TotalAmountFromRedeemingReserveCoin(long amountToRedeem, long txFee)
         {
             var feelessAmount = BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
-            var baseCost = BaseAmountFromRedeemingReserveCoin(amountToRedeem);
+            var fees = CalculateDevAndBankFee(amountToRedeem);
 
-			var devFee = CalculateDevFee(feelessAmount);
-
-            return (baseCost - txFee - devFee);
+            return (feelessAmount - txFee - fees.bankFee - fees.devFee);
         }
-
-        //Binary search to find out how much hodlcoin we would receive for sending x erg (no fees except protocol fee)
-        public long BaseAmountToReserveCoinAmount(long maxCost)
-        {
-            long minAmount = 0;
-            long maxAmount = maxCost;
-
-            while (minAmount <= maxAmount)
-            {
-                var midAmount = (minAmount + maxAmount) / 2;
-                var cost = BaseCostToMintReserveCoin(midAmount);
-
-                if (cost == maxCost)
-                {
-                    return midAmount;
-                }
-                else if (cost > maxCost)
-                {
-                    maxAmount = midAmount - 1;
-                }
-                else
-                {
-                    minAmount = midAmount + 1;
-                }
-            }
-
-            return maxAmount;
-        }
-
-		public long FeesFromRedeemingReserveCoin(long amountToRedeem, long txFee)
-		{
-			var feelessAmount = (long)((ReserveCoinNominalPrice() * amountToRedeem) / _precisionFactor);
-			var protocolFee = feelessAmount * _bankFeeNum / _info.feeDenom;
-            var devFee = CalculateDevFee(BaseAmountFromRedeemingReserveCoin(amountToRedeem));
-
-            return (protocolFee + txFee + devFee);
-		}
 
 		//Methods for creating the candicate
 		/// Create an `OutputBuilder` for the output Bank box for the
