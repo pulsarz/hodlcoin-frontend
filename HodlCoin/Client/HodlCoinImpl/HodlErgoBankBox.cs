@@ -137,7 +137,15 @@ namespace HodlCoin.Client.HodlCoinImpl
 		public long TotalCostToMintReserveCoin(long amountToMint, long txFee)
 		{
 			var baseCost = BaseCostToMintReserveCoin(amountToMint);
-            return (baseCost + txFee);
+
+            if (_info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
+            {
+                return (baseCost + txFee);
+            }
+            else
+            {
+                return baseCost;
+            }
 		}
         
         public long BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(long amountToRedeem)
@@ -160,7 +168,14 @@ namespace HodlCoin.Client.HodlCoinImpl
             var feelessAmount = BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
             var fees = CalculateDevAndBankFee(amountToRedeem);
 
-            return (feelessAmount - txFee - fees.bankFee - fees.devFee);
+            if (_info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
+            {
+                return (feelessAmount - txFee - fees.bankFee - fees.devFee);
+            }
+            else
+            {
+                return (feelessAmount - fees.bankFee - fees.devFee);
+            }  
         }
 
 		//Methods for creating the candicate

@@ -78,9 +78,10 @@ namespace HodlCoin.Client
             var circulatingReservecoinsIn = bankBox.NumCirculatingReserveCoins();
 
             var reservecoinValueInBaseWithoutProtocolFee = bankBox.BaseAmountFromRedeemingReserveCoinWithoutProtocolFee(amountToRedeem);
-            var reservecoinValueInBase = bankBox.BaseAmountFromRedeemingReserveCoin(amountToRedeem);
 
             var fees = bankBox.CalculateDevAndBankFee(amountToRedeem);
+            var reservecoinValueInBase = reservecoinValueInBaseWithoutProtocolFee - fees.bankFee;
+            
 
             if (circulatingReservecoinsIn < amountToRedeem)
             {
@@ -92,7 +93,7 @@ namespace HodlCoin.Client
 
             if (amountToRedeem == 0)
             {
-                throw new Exception("You must redeem at least 0.000000001 ReserveCoin.");
+                throw new Exception($"You must redeem at least {1 / Math.Pow(10, info.decimals)} ReserveCoin.");
             }
 
             if (rcBoxes.Count == 0)
