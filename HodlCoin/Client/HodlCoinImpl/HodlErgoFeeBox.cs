@@ -14,11 +14,11 @@ namespace HodlCoin.Client.HodlCoinImpl
         {
             if (info.baseTokenId == "0000000000000000000000000000000000000000000000000000000000000000")
             {
-                return new OutputBuilder(amount, Parameters.DEV_FEE_ADDRESS);
+                return new OutputBuilder(amount, info.devFeeAddress);
             }
             else
             {
-                return new OutputBuilder(Parameters.MIN_BOX_VALUE, Parameters.DEV_FEE_ADDRESS)
+                return new OutputBuilder(Parameters.MIN_BOX_VALUE, info.devFeeAddress)
                     .AddToken(new TokenAmount<long> { tokenId = info.baseTokenId, amount = amount });
             }
         }

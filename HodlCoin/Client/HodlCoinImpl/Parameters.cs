@@ -13,6 +13,7 @@ namespace HodlCoin.Client.HodlCoinImpl
         public string tokenId { get; set; }
         public int decimals { get; set; }
         public long feeDenom { get; set; }
+        public ErgoAddress devFeeAddress { get; set; }
         public long precisionFactor { get; set; }//Purely for UI
         public decimal protocolFeePercentage { get; set; }//Purely for UI
         public decimal devFeePercentage { get; set; }//Purely for UI
@@ -30,9 +31,6 @@ namespace HodlCoin.Client.HodlCoinImpl
 
         public const long MIN_BOX_VALUE = 1_000_000L;//0.001 ERG
 
-		//ToDo: Change to mainnet!
-        public static ErgoAddress DEV_FEE_ADDRESS = ErgoAddress.fromBase58("mCbJgVdTUoKiLn8a8Xucgvj45icZtV2uC85276wHVJQGtRhWzVAFiRDjJohyFDV81nShLn5Afc33mnV9mZUTkVty1zRPPRcXWRjhouRpxor7kMycsv8WSrbbP4p9oxsrsdoc6GQaoddfGexyzyPoQmgxNV1B9WQm4Ec5DTvEceHeV69mvqHGxB7cgps7eCvp2wLfhLm4DDuoteC6igiiHTtVhcG6SesqycQfnH7HACfjZLDsqAHtxCG3XzoGBpz6TjHTCXEmYEN3FiTd4AVskFaV31z5Re69ArUTxMoWPjP6dXZb3LBXtti3RUBeXLSAyTCbJktxU6irjjobTgz4jrjFr9QPnBnFENUesLpF4RYyXsR4t3awPZgXLbHFvCT8t8bcpnrP92Nue1wVCthaWRmCaJyRZddZDZLwAzSVutgaANNzr795EzVhv1kRTPgrae25VFZfdnVwvAiL1g67pJFc74etaEFGUQ26aotehPH6Y9hMreHiUDFRepGZiWRgsdpgoGnRdv4yR6GvePRWEymWCfsy1cNRhmqz4XbJPAaNuEoPkGbBTfvCFdjhfh9tczf4tkuRdhNLBePSbq9vntwFrek2Sy62D7MUfwK4GqwDkFDyYUNsgVKjC7z3nLQAdAU72ChhAXMqKLrxhvp2VaUmZj8jYdbXLUaH3Q7uJC65EHcMau");
-
 		public static List<HodlTokenInfo> tokens = new List<HodlTokenInfo>()
 		{
 			{
@@ -46,6 +44,7 @@ namespace HodlCoin.Client.HodlCoinImpl
 					baseTokenName = "ERG",
 					baseTokenId = "0000000000000000000000000000000000000000000000000000000000000000",
 					baseTokenDecimals = 9,
+                    devFeeAddress = ErgoAddress.fromBase58("mCbJgVdTUoKiLn8a8Xucgvj45icZtV2uC85276wHVJQGtRhWzVAFiRDjJohyFDV81nShLn5Afc33mnV9mZUTkVty1zRPPRcXWRjhouRpxor7kMycsv8WSrbbP4p9oxsrsdoc6GQaoddfGexyzyPoQmgxNV1B9WQm4Ec5DTvEceHeV69mvqHGxB7cgps7eCvp2wLfhLm4DDuoteC6igiiHTtVhcG6SesqycQfnH7HACfjZLDsqAHtxCG3XzoGBpz6TjHTCXEmYEN3FiTd4AVskFaV31z5Re69ArUTxMoWPjP6dXZb3LBXtti3RUBeXLSAyTCbJktxU6irjjobTgz4jrjFr9QPnBnFENUesLpF4RYyXsR4t3awPZgXLbHFvCT8t8bcpnrP92Nue1wVCthaWRmCaJyRZddZDZLwAzSVutgaANNzr795EzVhv1kRTPgrae25VFZfdnVwvAiL1g67pJFc74etaEFGUQ26aotehPH6Y9hMreHiUDFRepGZiWRgsdpgoGnRdv4yR6GvePRWEymWCfsy1cNRhmqz4XbJPAaNuEoPkGbBTfvCFdjhfh9tczf4tkuRdhNLBePSbq9vntwFrek2Sy62D7MUfwK4GqwDkFDyYUNsgVKjC7z3nLQAdAU72ChhAXMqKLrxhvp2VaUmZj8jYdbXLUaH3Q7uJC65EHcMau"),
 
 					//Purely for UI
 					precisionFactor = 1000000L,
@@ -54,7 +53,6 @@ namespace HodlCoin.Client.HodlCoinImpl
                     launchedOnUTC = new DateTime(2023,8,3,23,48,59)//https://explorer.ergoplatform.com/en/transactions/d5314f5fd09aa57a476dfe765aa725816c4437166498dea7c82c6c5b44eabbc5
                 }
 			}
-
         };
 	}
 }
